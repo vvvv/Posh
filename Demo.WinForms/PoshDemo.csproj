@@ -32,6 +32,9 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\Dependencies\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="SuperSocket.SocketEngine">
       <HintPath>..\Dependencies\SuperSocket.SocketEngine.dll</HintPath>
     </Reference>

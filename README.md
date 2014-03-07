@@ -7,6 +7,6 @@ requires:
 
 https://github.com/vvvv/NWamp
 
-https://github.com/vvvv/SVG
+https://github.com/vvvv/SVG  branch: textEvents
 
 to be cloned next to \Posh
