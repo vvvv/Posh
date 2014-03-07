@@ -1,0 +1,28 @@
+.kf 
+{
+	fill: #eeeeee;
+	stroke-width: 7;
+	stroke: #00000000;
+}
+
+.kf:hover 
+{
+	fill: #aaaaaa;
+	stroke-width: 7;
+	stroke: #aaaaaa;
+}
+
+.widgetback, .widgetback ~ .widgetfore
+{
+	stroke-width: 1;
+}
+
+.widgetback:hover, .widgetback:hover ~ .widgetfore
+{
+	stroke-width: 2;
+}
+
+.selected 
+{	
+	fill: #aaaaaa;
+}

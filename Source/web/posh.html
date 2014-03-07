@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<script type="text/javascript" src="autobahn.min.js"></script>
+	<script type="text/javascript" src="jquery-2.0.3.min.js"></script>
+	<script type="text/javascript" src="posh.js"></script>
+	<script type="text/javascript" src="posh-helper.js"></script>
+	<link rel="stylesheet" type="text/css" href="posh.css">
+	<link rel="stylesheet" type="text/css" href="timeliner.css">
+	<meta name='HandheldFriendly' content='True' />
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' />
+<script>
+
+
+
+</script>
+</head>
+
+<body>
+
+<div onselectstart='return false;' tabindex="0">
+	<svg id="svg" xmlns="http://www.w3.org/2000/svg" />
+</div>
+<div id="editor" contenteditable="true"></div>
+
+<div id="config" onselectstart="return false;" tabindex="0" onfocus="showConfig()">
+	<div id="sessionID">Session ID: none</div>
+	<form onsubmit="return false;">
+	Name: <input id="sessionName" type="text" name="name" onkeyup="sessionNameKeyUp(event)">
+	<div id="upsdisp">Max updates/second: 30</div><input id="ups" type="range" min="1" max="60" value="30">
+	</form>
+	<div id="lastChange">Last Change: none</div>
+</div>
+
+</body>
+</html>

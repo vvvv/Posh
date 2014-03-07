@@ -1,0 +1,51 @@
+body{
+	overflow-x:hidden;
+	overflow-y: scroll;
+	-ms-touch-action: none !important; /* DISABLE DOUBLE-TAP-ZOOM */  
+}
+
+svg{
+	position: absolute;
+	top: 0;
+	left: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#editor
+{
+	position: absolute;
+    white-space: nowrap;
+    width:50px;
+    overflow:hidden;
+    display:none;
+	//background: white;
+}
+
+#config
+{
+	position: absolute;
+	top:0;
+	left:40%;
+	padding:5px;
+	background-color:#ccc;
+	font-family:helvetica;
+	font-size:12px;
+	-webkit-transition: .3s ease-in-out;
+	-moz-transition: .3s ease-in-out;
+    -ms-transition: .3s ease-in-out;
+}
+
+#rootlist
+{
+	margin-left:auto;
+	margin-right:auto;
+	width:10%;
+	font-family:helvetica;
+	font-size:12px;
+}
+
+.hair
+{
+	shape-rendering : crispEdges;
+}
