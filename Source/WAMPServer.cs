@@ -198,13 +198,15 @@ namespace Posh
 				return; //todo: log an error
 
 			SessionNames.Add(e.SessionId, e.SessionId);
-				
-			OnSessionCreated(sender, e);
+
+            if (OnSessionCreated != null)
+			    OnSessionCreated(sender, e);
 		}
 		
 		private void SessionClosed(object sender, SessionEventArgs e)
 		{
-			OnSessionClosed(sender, e);
+			if (OnSessionClosed != null)
+			    OnSessionClosed(sender, e);
 			
 			if (SessionNames.ContainsKey(e.SessionId))
 				SessionNames.Remove(e.SessionId);
@@ -229,17 +231,20 @@ namespace Posh
 		
 		private void KeyDown(bool ctrl, bool shift, bool alt, int keyCode)
 		{
-			OnKeyDown(ctrl, shift, alt, keyCode);
+            if (OnKeyDown != null)
+			    OnKeyDown(ctrl, shift, alt, keyCode);
 		}
 		
 		private void KeyUp(bool ctrl, bool shift, bool alt, int keyCode)
 		{
-			OnKeyUp(ctrl, shift, alt, keyCode);
+            if (OnKeyUp != null)
+                OnKeyUp(ctrl, shift, alt, keyCode);
 		}
 		
 		private void KeyPress(bool ctrl, bool shift, bool alt, char key)
 		{
-			OnKeyPress(ctrl, shift, alt, key);
+            if (OnKeyPress != null)
+                OnKeyPress(ctrl, shift, alt, key);
 		}
 		
 		public void PublishAll(object sender, EventArgs notInUse)
