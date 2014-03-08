@@ -32,9 +32,9 @@ namespace Posh
 				if(string.IsNullOrWhiteSpace(element.ID))
 				{
 					if(element.Parent != null)
-						element.ID = element.Parent.ID + "/" + IDGenerator.NewID;
+						element.SetAndFixID(element.Parent.ID + "/" + IDGenerator.NewID, true, null);
 					else
-						element.ID = RandomString(16);
+						element.SetAndFixID(RandomString(16), true, null);
 				}
 				
 				element.RegisterEvents(FCaller);

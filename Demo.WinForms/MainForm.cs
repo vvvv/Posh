@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using System.Linq;
 
 using NWamp;
-using Svg;
 using Posh;
+using Svg;
+using Svg.Transforms;
 
 namespace PoshDemo
 {
@@ -21,8 +23,10 @@ namespace PoshDemo
 		Action<string> Log;
 		SvgDocument ViewRoot;
 		SvgRectangle SelectionRect;
+		SvgGroup FRectGroup;
 		
-		List<SvgRectangle> FQuads = new List<SvgRectangle>();
+		List<SvgRectangle> FRects = new List<SvgRectangle>();
+		List<SvgRectangle> FSelectedRects = new List<SvgRectangle>();
 		IMouseEventHandler FMouseHandler = null;
 		
 		public MainForm()
@@ -70,6 +74,12 @@ namespace PoshDemo
 			//add background to svg doc
 			ViewRoot.Children.Add(background);
 			
+			//group containing all rects
+			FRectGroup = new SvgGroup();
+			FRectGroup.ID = "RectGroup";
+			FRectGroup.Transforms.Add(new Svg.Transforms.SvgTranslate(0, 0));
+			ViewRoot.Children.Add(FRectGroup);
+			
 			//selection rect
 			SelectionRect = new SvgRectangle();
 			SelectionRect.FillOpacity = 0.1f;
@@ -91,30 +101,29 @@ namespace PoshDemo
 		{
 			if(FMouseHandler != null) return;
 			
-			if(e.Button == 1)
+			if(e.Button == 1) //select
 			{
-				if(FMouseHandler == null)
-				{
-					FMouseHandler = new SelectionRectangleHandler(SelectionRect, e.SessionID);
-				}
+				
+				FMouseHandler = new SelectionRectangleHandler(FRects, FSelectedRects, FRectGroup.Transforms[0], SelectionRect, e.SessionID);
+			}
+			else if(e.Button == 3) //create new rect
+			{
+				var newRect = new SvgRectangle();
+				newRect.MouseDown += rect_MouseDown;
+				newRect.MouseMove += rect_MouseMove;
+				newRect.MouseUp += rect_MouseUp;
+				FRectGroup.Children.Add(newRect);
+				FRects.Add(newRect);
+				FMouseHandler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0]);
+				FWAMPServer.PublishAdd(this, null);
 			}
 			else
 			{
-				if(FMouseHandler == null)
-				{
-					var newRect = new SvgRectangle();
-					newRect.MouseDown += rect_MouseDown;
-					newRect.MouseMove += rect_MouseMove;
-					newRect.MouseUp += rect_MouseUp;
-					ViewRoot.Children.Add(newRect);
-					FQuads.Add(newRect);
-					FMouseHandler = new RectangleSizeHandler(newRect, e.SessionID);
-				}
+				FMouseHandler = new MoveAllRectsHandler(FRectGroup, e.SessionID);
 			}
 			
 			FMouseHandler = FMouseHandler.MouseDown(sender, e);
 			
-			FWAMPServer.PublishAdd(this, null);
 		}
 
 		//move on background
@@ -141,20 +150,18 @@ namespace PoshDemo
 		{
 			if(FMouseHandler != null) return;
 			
-			if (e.Button == 1)
+			if (e.Button == 1) //drag
 			{
-				if(FMouseHandler == null)
-				{
-					FMouseHandler = new RectDragHandler(sender as SvgRectangle, e.SessionID);
-				}
+				FMouseHandler = new SelectedRectsMoveHandler(FSelectedRects, sender as SvgRectangle, e.SessionID);
 				
 				FMouseHandler = FMouseHandler.MouseDown(sender, e);
 			}
-			else
+			else //remove
 			{
 				//removing stuff
-				ViewRoot.Children.Remove(sender as SvgRectangle);
-				FQuads.Remove(sender as SvgRectangle);
+				FSelectedRects.Clear();
+				FRectGroup.Children.Remove(sender as SvgRectangle);
+				FRects.Remove(sender as SvgRectangle);
 				FWAMPServer.PublishRemove(null, null);
 			}
 		}
@@ -215,15 +222,51 @@ namespace PoshDemo
 	}
 	
 	//selection rect
-	public class SelectionRectangleHandler : RectangleSizeHandler
+	public class SelectionRectangleHandler : MouseHandlerBase<SvgRectangle>
 	{
-		public SelectionRectangleHandler(SvgRectangle rect, string sessionID)
-			: base(rect, sessionID)
+		List<SvgRectangle> FQuads;
+		List<SvgRectangle> FSelectedQuads;
+		SvgTransform FRectTransform;
+		
+		public SelectionRectangleHandler(List<SvgRectangle> quads, List<SvgRectangle> selected, SvgTransform rectTransform, SvgRectangle rect, string sessionID)
+			: base(rect, sessionID, null)
 		{
+			FQuads = quads;
+			FSelectedQuads = selected;
+			FRectTransform = rectTransform;
+		}
+		
+		public override IMouseEventHandler MouseDown(object sender, MouseArg arg)
+		{
+			FSelectedQuads.Clear();
+			return base.MouseDown(sender, arg);
+		}
+		
+		RectangleF FLastSelection;
+		public override void MouseSelection(object sender, RectangleF selection)
+		{
+			Instance.SetRectangle(selection);
+			FLastSelection = selection;
+		}
+		
+		protected PointF TransformPointInverse(Matrix t, PointF p)
+		{
+			var pts = new PointF[] { p };
+			t.Invert();
+			t.TransformPoints(pts);
+			return pts[0];
 		}
 		
 		public override IMouseEventHandler MouseUp(object sender, MouseArg arg)
 		{
+			FLastSelection.Location = TransformPointInverse(FRectTransform.Matrix, FLastSelection.Location);
+			foreach (var rect in FQuads) 
+			{
+				if(FLastSelection.Contains(rect.GetRectangle()))
+				{
+					FSelectedQuads.Add(rect);
+				}
+			}
 			Instance.SetRectangle(new RectangleF(-100, -100, 0, 0));
 			return base.MouseUp(sender, arg);
 		}
@@ -232,8 +275,8 @@ namespace PoshDemo
 	//new rectangle created
 	public class RectangleSizeHandler : MouseHandlerBase<SvgRectangle>
 	{
-		public RectangleSizeHandler(SvgRectangle rect, string sessionID)
-			: base(rect, sessionID)
+		public RectangleSizeHandler(SvgRectangle rect, string sessionID, SvgTransform groupTransform)
+			: base(rect, sessionID, groupTransform)
 		{
 		}
 		
@@ -243,19 +286,51 @@ namespace PoshDemo
 		}
 	}
 	
-	//drag a rectangle
-	public class RectDragHandler : MouseHandlerBase<SvgRectangle>
+	//drag all quads
+	public class MoveAllRectsHandler : MouseHandlerBase<SvgGroup>
 	{
-		
-		public RectDragHandler(SvgRectangle rect, string sessionID)
-			: base(rect, sessionID)
+		public MoveAllRectsHandler(SvgGroup g, string sessionID)
+			: base(g, sessionID, null)
 		{
 		}
 		
 		public override void MouseDrag(object sender, PointF arg, PointF delta, int dragCall)
 		{
-			Instance.X += delta.X;
-			Instance.Y += delta.Y;
+			var transform = Instance.Transforms[0].Matrix;
+			Instance.Transforms[0] = new Svg.Transforms.SvgTranslate(transform.OffsetX + delta.X, transform.OffsetY + delta.Y);
+		}
+		
+		
+	}
+	
+	//drag selected rectangles
+	public class SelectedRectsMoveHandler : MouseHandlerBase<SvgRectangle>
+	{
+		List<SvgRectangle> FSelectedQuads;
+		public SelectedRectsMoveHandler(List<SvgRectangle> selected, SvgRectangle rect, string sessionID)
+			: base(rect, sessionID, null)
+		{
+			FSelectedQuads = selected;
+		}
+		
+		public override IMouseEventHandler MouseDown(object sender, MouseArg arg)
+		{
+			
+			if(!FSelectedQuads.Contains(Instance))
+			{
+				FSelectedQuads.Clear();
+				FSelectedQuads.Add(Instance);
+			}
+			return base.MouseDown(sender, arg);
+		}
+		
+		public override void MouseDrag(object sender, PointF arg, PointF delta, int dragCall)
+		{
+			foreach (var rect in FSelectedQuads)
+			{
+				rect.X += delta.X;
+				rect.Y += delta.Y;
+			}
 		}
 	}
 	
@@ -281,19 +356,29 @@ namespace PoshDemo
 		PointF LastPoint;
 		int DragCallCounter = 0;
 		protected TView Instance;
+		protected SvgTransform MouseTransform;
 		public string SessionID { get; protected set; }
 
-		public MouseHandlerBase(TView view, string sessionID)
+		public MouseHandlerBase(TView view, string sessionID, SvgTransform mouseTransform)
 		{
 			Instance = view;
 			SessionID = sessionID;
+			MouseTransform = mouseTransform == null ? new SvgTranslate(0, 0) : mouseTransform;
+		}
+		
+		protected PointF TransformPointInverse(Matrix t, PointF p)
+		{
+			var pts = new PointF[] { p };
+			t.Invert();
+			t.TransformPoints(pts);
+			return pts[0];
 		}
 
 		public virtual IMouseEventHandler MouseDown(object sender, MouseArg arg)
 		{
 			pressed = true;
 			Button = arg.Button;
-			StartPoint = new PointF(arg.x, arg.y);
+			StartPoint = TransformPointInverse(MouseTransform.Matrix, new PointF(arg.x, arg.y));
 			LastPoint = StartPoint;
 			return this;
 		}
@@ -302,7 +387,7 @@ namespace PoshDemo
 		{
 			if(pressed)
 			{
-				var point = new PointF(arg.x, arg.y);
+				var point = TransformPointInverse(MouseTransform.Matrix, new PointF(arg.x, arg.y));
 				MouseDrag(sender, point, new PointF(point.X - LastPoint.X, point.Y - LastPoint.Y), DragCallCounter);
 
 				var rect = new RectangleF(StartPoint, new SizeF(point.X - StartPoint.X, point.Y - StartPoint.Y));

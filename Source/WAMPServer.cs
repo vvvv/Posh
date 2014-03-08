@@ -447,6 +447,11 @@ namespace Posh
 			var svgString = "<g id=\"add\" sessionName=\"" + SessionName + "\">";
 			foreach (var item in AddElements)
 			{
+				//fix id?
+				if(item.Parent != null && !item.ID.StartsWith(item.Parent.ID + "/"))
+				{
+					item.SetAndFixID(item.Parent.ID + "/" + item.ID);
+				}
 				svgString += item.GetXML();
             }
 
