@@ -97,7 +97,23 @@ namespace PoshDemo
 			var manager = new SvgIdManager(ViewRoot, FWAMPServer.EventCaller, FWAMPServer.RemoteContext);
             ViewRoot.OverwriteIdManager(manager);
                        
-            //fill the svg document
+			//fill the svg document
+			SetupInitialView();
+			
+			//open the canvas: the window showing the view is a webbrowser navigating to the given url on localhost
+			webBrowser1.Navigate("about:blank");
+			webBrowser1.Navigate(new Uri("http://localhost:4444/" + url));	
+
+			//dispose web- and wampserver
+			this.Disposed += (s, e) => 
+				{
+					WebServer.Stop();
+					FWAMPServer.Dispose();
+				};
+		}
+		
+		void SetupInitialView()
+		{
 			//background rect
             var background = new SvgRectangle();
 			background.Width = Screen.PrimaryScreen.WorkingArea.Width;
@@ -121,17 +137,6 @@ namespace PoshDemo
 			
 			//clear context as initial stuff will come via dump already
             FWAMPServer.RemoteContext.ClearAll();
-			
-			//the window showing the view is a webbrowser navigating to the given url on localhost
-			webBrowser1.Navigate("about:blank");
-			webBrowser1.Navigate(new Uri("http://localhost:4444/" + url));	
-
-			//dispose web- and wampserver
-			this.Disposed += (s, e) => 
-				{
-					WebServer.Stop();
-					FWAMPServer.Dispose();
-				};
 		}
 		
 		void AddSomeRects()
