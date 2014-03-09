@@ -19,12 +19,12 @@ namespace Posh
 		{
 			FCaller = caller;
 			RemoteContext = remoteContext;
-			
 		}
 		
 		public override bool AddAndFixID(SvgElement element, SvgElement sibling, bool autoFixID, Action<SvgElement, string, string> logElementOldIDNewID)
 		{
 			element.AttributeChanged += element_AttributeChanged;
+			element.ChildAdded += element_ChildAdded;
 			
 			if(element is SvgVisualElement)
 			{
@@ -49,13 +49,30 @@ namespace Posh
 				RemoteContext.InsertBefore(element, sibling);
 			}
 			
-			return base.AddAndFixID(element, sibling, autoFixID, logElementOldIDNewID);
+			return base.AddAndFixID(element, sibling, true, logElementOldIDNewID);
 			
+		}
+
+		void element_ChildAdded(object sender, ChildAddedEventArgs e)
+		{
+			if(!(sender is SvgDocument) && e.NewChild is SvgVisualElement)
+			{
+				var newChild = e.NewChild;
+				if(!string.IsNullOrWhiteSpace(newChild.Parent.ID) && !newChild.ID.StartsWith(newChild.Parent.ID + "/"))
+				{
+					newChild.ApplyRecursive( elem => 
+					                        {
+					                        	var oldID = elem.ID.Substring(elem.ID.LastIndexOf("/") + 1);
+					                        	elem.SetAndFixID(newChild.Parent.ID + "/" + oldID);
+					                        });
+				}
+			}
 		}
 		
 		public override void Remove(SvgElement element)
 		{
 			element.AttributeChanged -= element_AttributeChanged;
+			element.ChildAdded -= element_ChildAdded;
 			
 			if(element is SvgVisualElement)
 				element.UnregisterEvents(FCaller);

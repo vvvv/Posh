@@ -62,9 +62,10 @@ namespace Posh
 			WampListener.CreateTopic("remove");
 			WampListener.SessionCreated += SessionCreated;
 			WampListener.SessionClosed += SessionClosed;
+			WampListener.CallInvoked += PublishAll;
 			
 			//publish all stuff aufter each call from remote
-			AutoPublishAfterRemoteCall = true;
+			AutoPublishAllAfterRemoteCall = true;
 			
 			WampListener.RegisterFunc<string>("dump", Dump);
 			WampListener.RegisterFunc<string, string, string>("setSessionName", SetSessionName);
@@ -72,6 +73,7 @@ namespace Posh
             WampListener.RegisterAction<bool, bool, bool, int>("keyup", KeyUp);
             WampListener.RegisterAction<bool, bool, bool, char>("keypress", KeyPress);
 
+			//create event caller for svg            
 			EventCaller = new SvgEventCaller(WampListener);
 		}
 		
@@ -84,7 +86,7 @@ namespace Posh
 		}
 		
 		private bool FAutoPublishAfterRemoteCall;
-		public bool AutoPublishAfterRemoteCall
+		public bool AutoPublishAllAfterRemoteCall
 		{
 			get
 			{
@@ -106,6 +108,7 @@ namespace Posh
 				}
 			}
 		}
+		
 
 		#region destructor
 		// Implementing IDisposable's Dispose method.
@@ -481,11 +484,6 @@ namespace Posh
 			var svgString = "<g id=\"add\" sessionName=\"" + SessionName + "\">";
 			foreach (var item in AddElements)
 			{
-				//fix id?
-				if(item.Parent != null && !item.ID.StartsWith(item.Parent.ID + "/"))
-				{
-					item.SetAndFixID(item.Parent.ID + "/" + item.ID);
-				}
 				svgString += item.GetXML();
             }
 
