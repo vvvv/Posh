@@ -64,7 +64,9 @@ namespace Posh
 			WampListener.CreateTopic("remove");
 			WampListener.SessionCreated += SessionCreated;
 			WampListener.SessionClosed += SessionClosed;
-			WampListener.CallInvoked += PublishUpdate;
+			
+			//publish all stuff aufter each call from remote
+			WampListener.CallInvoked += PublishAll;
 			
 			WampListener.RegisterFunc<string>("dump", Dump);
 			WampListener.RegisterFunc<string, string, string>("setSessionName", SetSessionName);

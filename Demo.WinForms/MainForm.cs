@@ -28,6 +28,7 @@ namespace PoshDemo
 		}
 	}
 	
+	//per session stuff
 	public class SessionParameters
 	{
 		public SessionParameters(string id)
@@ -170,7 +171,6 @@ namespace PoshDemo
 				FRectGroup.Children.Add(newRect);
 				FRects.Add(newRect);
 				handler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0]);
-				FWAMPServer.PublishAdd(this, null);
 			}
 			else
 			{
@@ -211,7 +211,6 @@ namespace PoshDemo
 				//removing stuff
 				FRectGroup.Children.Remove(sender as SvgRectangle);
 				FRects.Remove(sender as SvgRectangle);
-				FWAMPServer.PublishRemove(null, null);
 			}
 		}
 		
@@ -262,7 +261,6 @@ namespace PoshDemo
 			FSessionParams[e.SessionId] = param;
 			ViewRoot.Children.Add(param.SelectionRect);
 			ViewRoot.Children.Add(param.Label);
-			FWAMPServer.PublishAdd(this, null);
 		}
 
 		//session closed
@@ -275,7 +273,6 @@ namespace PoshDemo
 			}
 			ViewRoot.Children.Remove(FSessionParams[e.SessionId].SelectionRect);
 			FSessionParams.Remove(e.SessionId);
-			FWAMPServer.PublishRemove(this, null);
 		}
 		
 		//dump whole SVG scene graph
