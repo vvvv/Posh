@@ -64,7 +64,7 @@ namespace Posh
 			WampListener.SessionClosed += SessionClosed;
 			
 			//publish all stuff aufter each call from remote
-			WampListener.CallInvoked += PublishAll;
+			AutoPublishAfterRemoteCall = true;
 			
 			WampListener.RegisterFunc<string>("dump", Dump);
 			WampListener.RegisterFunc<string, string, string>("setSessionName", SetSessionName);
@@ -81,6 +81,30 @@ namespace Posh
 				RemoteContext.SessionName = SessionNames[sessionID];
 			else
 				RemoteContext.SessionName = "";
+		}
+		
+		private bool FAutoPublishAfterRemoteCall;
+		public bool AutoPublishAfterRemoteCall
+		{
+			get
+			{
+				return FAutoPublishAfterRemoteCall;
+			}
+			set
+			{
+				if(value != FAutoPublishAfterRemoteCall)
+				{
+					FAutoPublishAfterRemoteCall = value;
+					if(FAutoPublishAfterRemoteCall)
+					{
+						WampListener.CallInvoked += PublishAll;
+					}
+					else
+					{
+						WampListener.CallInvoked -= PublishAll;
+					}
+				}
+			}
 		}
 
 		#region destructor
@@ -113,7 +137,7 @@ namespace Posh
 					// Dispose managed resources.
 					WampListener.SessionCreated -= SessionCreated;
 					WampListener.SessionClosed -= SessionClosed;
-					WampListener.CallInvoked -= PublishUpdate;
+					WampListener.CallInvoked -= PublishAll;
 					
 					WampListener.Dispose();
 					WampListener = null;
