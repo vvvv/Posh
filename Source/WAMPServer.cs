@@ -355,34 +355,44 @@ namespace Posh
 		
 		public string GetUpdateJson()
 		{
-			//copy and convert dictionary
-			foreach (var attrs in FUpdates) 
+			var ret = "";
+			lock(FUpdates)
 			{
-				var dic = new Dictionary<string, string>();
-				
-				foreach (var att in FUpdates[attrs.Key])
+				//copy and convert dictionary
+				foreach (var attrs in FUpdates)
 				{
-					//convert to string
-					var converter = att.Key == "visibility" ? new SvgBoolConverter() : TypeDescriptor.GetConverter(att.Value);
-					dic[att.Key] = converter.ConvertToString(null, CultureInfo.InvariantCulture, att.Value);
-				}
+					var dic = new Dictionary<string, string>();
+					
+					foreach (var att in FUpdates[attrs.Key])
+					{
+						//convert to string
+						var converter = att.Key == "visibility" ? new SvgBoolConverter() : TypeDescriptor.GetConverter(att.Value);
+						dic[att.Key] = converter.ConvertToString(null, CultureInfo.InvariantCulture, att.Value);
+					}
 
-				Updates.Add(new AttributeUpdate(attrs.Key, dic));
+					Updates.Add(new AttributeUpdate(attrs.Key, dic));
+				}
+				
+				ret = JsonConvert.SerializeObject(this);
 			}
 			
-			return JsonConvert.SerializeObject(this);
+			return ret;
+			
 		}
 		
 		public void AddAttribute(string ID, string name, object value)
 		{
-			//create new dictionary?
-			if(!FUpdates.ContainsKey(ID))
+			lock(FUpdates)
 			{
-				FUpdates[ID] = new Dictionary<string, object>();
+				//create new dictionary?
+				if(!FUpdates.ContainsKey(ID))
+				{
+					FUpdates[ID] = new Dictionary<string, object>();
+				}
+				
+				//insert value
+				FUpdates[ID][name] = value;
 			}
-			
-			//insert value
-			FUpdates[ID][name] = value;
 		}
 		
 		public void ClearUpdate()

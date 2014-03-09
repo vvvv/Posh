@@ -6,14 +6,54 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-
 using NWamp;
 using Posh;
+using PoshDemo;
 using Svg;
 using Svg.Transforms;
 
 namespace PoshDemo
 {
+	public static class SvgExtentions
+	{
+		public static void Select(this SvgRectangle rect)
+		{
+			rect.Stroke = new SvgColourServer(Color.Red);
+			rect.StrokeWidth = 2;
+		}
+		
+		public static void Unselect(this SvgRectangle rect)
+		{
+			rect.Stroke = new SvgColourServer(Color.Transparent);
+		}
+	}
+	
+	public class SessionParameters
+	{
+		public SessionParameters(string id)
+		{
+			//selection rect
+			SelectionRect = new SvgRectangle();
+			SelectionRect.FillOpacity = 0.1f;
+			SelectionRect.Stroke = new SvgColourServer(Color.Black);
+			SelectionRect.StrokeWidth = 1;
+			SelectionRect.CustomAttributes["pointer-events"] = "none";
+			
+			Label = new SvgText();
+			Label.FontSize = 12;
+			Label.FontFamily = "Lucida Sans Unicode";
+			Label.Text = id;
+			Label.X = -1000;
+			Label.CustomAttributes["pointer-events"] = "none";
+			Label.Fill = new SvgColourServer(Color.Black);
+		}
+		
+		public IMouseEventHandler MouseHandler;
+		public List<SvgRectangle> SelectedRects = new List<SvgRectangle>();
+		public SvgRectangle SelectionRect;
+		public SvgText Label;
+	}
+	
 	/// <summary>
 	/// Description of MainForm.
 	/// </summary>
@@ -22,12 +62,10 @@ namespace PoshDemo
 		WAMPServer FWAMPServer;
 		Action<string> Log;
 		SvgDocument ViewRoot;
-		SvgRectangle SelectionRect;
 		SvgGroup FRectGroup;
 		
 		List<SvgRectangle> FRects = new List<SvgRectangle>();
-		List<SvgRectangle> FSelectedRects = new List<SvgRectangle>();
-		IMouseEventHandler FMouseHandler = null;
+		Dictionary<string, SessionParameters> FSessionParams = new Dictionary<string, SessionParameters>();
 		
 		public MainForm()
 		{
@@ -80,31 +118,48 @@ namespace PoshDemo
 			FRectGroup.Transforms.Add(new Svg.Transforms.SvgTranslate(0, 0));
 			ViewRoot.Children.Add(FRectGroup);
 			
-			//selection rect
-			SelectionRect = new SvgRectangle();
-			SelectionRect.FillOpacity = 0.1f;
-			SelectionRect.Stroke = new SvgColourServer(Color.Black);
-			SelectionRect.StrokeWidth = 1;
-			SelectionRect.CustomAttributes["pointer-events"] = "none";
-			
-			ViewRoot.Children.Add(SelectionRect);
+			AddSomeRects();
 			
             FWAMPServer.RemoteContext.ClearAll();
 			
 			//the window showing the view is a webbrowser navigating to the given url on localhost
 			webBrowser1.Navigate("about:blank");
 			webBrowser1.Navigate(new Uri("http://localhost:4444/" + url));
+			
+		}
+		
+		void AddSomeRects()
+		{
+			var count = 50;
+			for (int i = 0; i < count; i++)
+			{
+				for (int j = 0; j< count; j++)
+				{
+					var newRect = new SvgRectangle();
+					newRect.X = i * 15 + 40;
+					newRect.Y = j * 15 + 40;
+					newRect.Width = 10;
+					newRect.Height = 10;
+					newRect.MouseDown += rect_MouseDown;
+					newRect.MouseMove += rect_MouseMove;
+					newRect.MouseUp += rect_MouseUp;
+					newRect.ID = FRectGroup.ID + "/" + (i * count + j).ToString();
+					FRectGroup.Children.Add(newRect);
+					FRects.Add(newRect);
+				}
+			}
 		}
 
 		//selection rect or new rect
 		void background_MouseDown(object sender, MouseArg e)
 		{
-			if(FMouseHandler != null) return;
+			if(!FSessionParams.ContainsKey(e.SessionID)) return;
+			var handler = GetHandler(e.SessionID);
+			if(handler != null) return;
 			
 			if(e.Button == 1) //select
 			{
-				
-				FMouseHandler = new SelectionRectangleHandler(FRects, FSelectedRects, FRectGroup.Transforms[0], SelectionRect, e.SessionID);
+				handler = new SelectionRectangleHandler(FRects, FSessionParams[e.SessionID].SelectedRects, FRectGroup.Transforms[0],FSessionParams[e.SessionID].Label, FSessionParams[e.SessionID].SelectionRect, e.SessionID);
 			}
 			else if(e.Button == 3) //create new rect
 			{
@@ -114,52 +169,46 @@ namespace PoshDemo
 				newRect.MouseUp += rect_MouseUp;
 				FRectGroup.Children.Add(newRect);
 				FRects.Add(newRect);
-				FMouseHandler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0]);
+				handler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0]);
 				FWAMPServer.PublishAdd(this, null);
 			}
 			else
 			{
-				FMouseHandler = new MoveAllRectsHandler(FRectGroup, e.SessionID);
+				handler = new MoveAllRectsHandler(FRectGroup, e.SessionID);
 			}
 			
-			FMouseHandler = FMouseHandler.MouseDown(sender, e);
+			FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, e);
 			
 		}
 
 		//move on background
 		void background_MouseMove(object sender, PointArg e)
 		{
-			if(CheckMouseHandler(e))
-			{
-				FMouseHandler = FMouseHandler.MouseMove(sender, e);
-			}
-			
+			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
 		}
 
 		//click in background
 		void background_MouseUp(object sender, MouseArg e)
 		{
-			if(CheckMouseHandler(e))
-			{
-				FMouseHandler = FMouseHandler.MouseUp(sender, e);
-			}
+			HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, e));
 		}
 
 		//click rect
 		void rect_MouseDown(object sender, MouseArg e)
 		{
-			if(FMouseHandler != null) return;
+			if(!FSessionParams.ContainsKey(e.SessionID)) return;
+			var handler = GetHandler(e.SessionID);
+			if(handler != null) return;
 			
 			if (e.Button == 1) //drag
 			{
-				FMouseHandler = new SelectedRectsMoveHandler(FSelectedRects, sender as SvgRectangle, e.SessionID);
+				handler = new SelectedRectsMoveHandler(FSessionParams[e.SessionID].SelectedRects, sender as SvgRectangle, e.SessionID);
 				
-				FMouseHandler = FMouseHandler.MouseDown(sender, e);
+				FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, e);
 			}
 			else //remove
 			{
 				//removing stuff
-				FSelectedRects.Clear();
 				FRectGroup.Children.Remove(sender as SvgRectangle);
 				FRects.Remove(sender as SvgRectangle);
 				FWAMPServer.PublishRemove(null, null);
@@ -169,26 +218,39 @@ namespace PoshDemo
 		//move on rect
 		void rect_MouseMove(object sender, PointArg e)
 		{
-			if(CheckMouseHandler(e))
-			{
-				FMouseHandler = FMouseHandler.MouseMove(sender, e);
-			}
+			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
 		}
 		
 		//rect mouse up
 		void rect_MouseUp(object sender, MouseArg e)
 		{
-			if(CheckMouseHandler(e))
+			HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, e));
+		}
+		
+		//rect mouse up
+		void HandlerDispatch(string id, Func<IMouseEventHandler, IMouseEventHandler> func)
+		{
+			if(FSessionParams.ContainsKey(id))
 			{
-				FMouseHandler = FMouseHandler.MouseUp(sender, e);
+				var handler = FSessionParams[id].MouseHandler;
+				if(handler != null)
+				{
+					FSessionParams[id].MouseHandler = func(handler);
+				}
 			}
 		}
 		
-		//check mouse handler condition
-		protected bool CheckMouseHandler(SVGArg arg)
-        {
-        	return FMouseHandler != null && FMouseHandler.SessionID == arg.SessionID;
-        }
+		IMouseEventHandler GetHandler(string id)
+		{
+			if(FSessionParams.ContainsKey(id))
+			{
+				return FSessionParams[id].MouseHandler;
+			}
+			else
+			{
+				return null;
+			}
+		}
 
 		//websocket stuff
 		
@@ -196,12 +258,24 @@ namespace PoshDemo
 		void PoshSessionCreated(object sender, SessionEventArgs e)
 		{
 			Log("session created " + e.SessionId);
+			var param = new SessionParameters(e.SessionId);
+			FSessionParams[e.SessionId] = param;
+			ViewRoot.Children.Add(param.SelectionRect);
+			ViewRoot.Children.Add(param.Label);
+			FWAMPServer.PublishAdd(this, null);
 		}
 
 		//session closed
 		void PoshSessionClosed(object sender, SessionEventArgs e)
 		{
 			Log("session closed " + e.SessionId);
+			foreach (var rect in FSessionParams[e.SessionId].SelectedRects) 
+			{
+				rect.Unselect();
+			}
+			ViewRoot.Children.Remove(FSessionParams[e.SessionId].SelectionRect);
+			FSessionParams.Remove(e.SessionId);
+			FWAMPServer.PublishRemove(this, null);
 		}
 		
 		//dump whole SVG scene graph
@@ -221,24 +295,34 @@ namespace PoshDemo
 		}
 	}
 	
+	#region handlers
+	
 	//selection rect
 	public class SelectionRectangleHandler : MouseHandlerBase<SvgRectangle>
 	{
 		List<SvgRectangle> FQuads;
 		List<SvgRectangle> FSelectedQuads;
 		SvgTransform FRectTransform;
+		SvgText FLabel;
 		
-		public SelectionRectangleHandler(List<SvgRectangle> quads, List<SvgRectangle> selected, SvgTransform rectTransform, SvgRectangle rect, string sessionID)
-			: base(rect, sessionID, null)
+		public SelectionRectangleHandler(List<SvgRectangle> quads, List<SvgRectangle> selected, SvgTransform rectTransform, SvgText label, SvgRectangle selectionRect, string sessionID)
+			: base(selectionRect, sessionID, null)
 		{
 			FQuads = quads;
 			FSelectedQuads = selected;
 			FRectTransform = rectTransform;
+			FLabel = label;
 		}
 		
 		public override IMouseEventHandler MouseDown(object sender, MouseArg arg)
 		{
+			foreach (var rect in FSelectedQuads) 
+			{
+				rect.Unselect();
+			}
 			FSelectedQuads.Clear();
+			FLabel.X = arg.x;
+			FLabel.Y = arg.y;
 			return base.MouseDown(sender, arg);
 		}
 		
@@ -249,14 +333,6 @@ namespace PoshDemo
 			FLastSelection = selection;
 		}
 		
-		protected PointF TransformPointInverse(Matrix t, PointF p)
-		{
-			var pts = new PointF[] { p };
-			t.Invert();
-			t.TransformPoints(pts);
-			return pts[0];
-		}
-		
 		public override IMouseEventHandler MouseUp(object sender, MouseArg arg)
 		{
 			FLastSelection.Location = TransformPointInverse(FRectTransform.Matrix, FLastSelection.Location);
@@ -264,10 +340,12 @@ namespace PoshDemo
 			{
 				if(FLastSelection.Contains(rect.GetRectangle()))
 				{
+					rect.Select();
 					FSelectedQuads.Add(rect);
 				}
 			}
 			Instance.SetRectangle(new RectangleF(-100, -100, 0, 0));
+			FLabel.X = -1000;
 			return base.MouseUp(sender, arg);
 		}
 	}
@@ -318,7 +396,12 @@ namespace PoshDemo
 			
 			if(!FSelectedQuads.Contains(Instance))
 			{
+				foreach (var rect in FSelectedQuads) 
+				{
+					rect.Unselect();
+				}
 				FSelectedQuads.Clear();
+				Instance.Select();
 				FSelectedQuads.Add(Instance);
 			}
 			return base.MouseDown(sender, arg);
@@ -344,6 +427,7 @@ namespace PoshDemo
 		IMouseEventHandler MouseUp(object sender, MouseArg arg);
 		string SessionID { get; }
 	}
+	
 
 	/// <summary>
 	/// Does basic mouse event hadling
@@ -431,4 +515,6 @@ namespace PoshDemo
 			return null;
 		}
 	}
+	
+	#endregion handlers
 }
