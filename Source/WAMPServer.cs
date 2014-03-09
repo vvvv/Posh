@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Net;
-using System.Runtime.Remoting.Messaging;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NWamp;
-using NWamp.Protocol.Rpc;
 using Svg;
 
 namespace Posh

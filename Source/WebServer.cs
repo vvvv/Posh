@@ -41,7 +41,7 @@ namespace Posh
 			FListenerThread = new Thread(HandleRequests);
 			
 			//consider a default localtion for the data
-			TerminalPath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), @"..\..\posh\");
+			TerminalPath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), @"web");
 			
 			//can only run public server if run as admin
 			if (IsAdministrator())

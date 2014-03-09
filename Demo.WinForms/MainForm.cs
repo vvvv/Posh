@@ -70,16 +70,11 @@ namespace PoshDemo
 		
 		public MainForm()
 		{
-			
 			// The InitializeComponent() call is required for Windows Forms designer support.
 			InitializeComponent();
 			
-			this.Disposed += new EventHandler(MainForm_Disposed);
 			Log = x => Console.WriteLine(x);
 
-			//set the path to the html/js files
-            WebServer.TerminalPath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), @"web");
-            
 			//register a url and receive a unique websocketport for it
             var url = WebServer.AddURL("poshdemo");
 			var port = WebServer.URLPort[url];
@@ -89,17 +84,20 @@ namespace PoshDemo
 			FWAMPServer.OnDump += PoshGraphDump;
 			FWAMPServer.OnSessionCreated += PoshSessionCreated;
 			FWAMPServer.OnSessionClosed += PoshSessionClosed;
+
+			//setup keyboard handlers
+//			FWAMPServer.OnKeyDown += KeyDownHandler;
+//			FWAMPServer.OnKeyUp += KeyUpHandler;
+//			FWAMPServer.OnKeyPress += KeyPressHandler;
 			
-			//keyboard
-//			FWAMPServer.OnKeyDown += FSVGTerminalProtocol_OnKeyDown;
-//			FWAMPServer.OnKeyUp += FSVGTerminalProtocol_OnKeyUp;
-//			FWAMPServer.OnKeyPress += FSVGTerminalProtocol_OnKeyPress;
-				
-			//the svg document gets a custom idmanager
+			//create an svg document
 			ViewRoot = new SvgDocument();
+
+			//hand the svg document a custom idmanager that talks to the WampServer
 			var manager = new SvgIdManager(ViewRoot, FWAMPServer.EventCaller, FWAMPServer.RemoteContext);
             ViewRoot.OverwriteIdManager(manager);
-            
+                       
+            //fill the svg document
 			//background rect
             var background = new SvgRectangle();
 			background.Width = Screen.PrimaryScreen.WorkingArea.Width;
@@ -121,12 +119,19 @@ namespace PoshDemo
 			
 			AddSomeRects();
 			
+			//clear context as initial stuff will come via dump already
             FWAMPServer.RemoteContext.ClearAll();
 			
 			//the window showing the view is a webbrowser navigating to the given url on localhost
 			webBrowser1.Navigate("about:blank");
-			webBrowser1.Navigate(new Uri("http://localhost:4444/" + url));
-			
+			webBrowser1.Navigate(new Uri("http://localhost:4444/" + url));	
+
+			//dispose web- and wampserver
+			this.Disposed += (s, e) => 
+				{
+					WebServer.Stop();
+					FWAMPServer.Dispose();
+				};
 		}
 		
 		void AddSomeRects()
@@ -151,6 +156,7 @@ namespace PoshDemo
 			}
 		}
 
+		#region event-delegation
 		//selection rect or new rect
 		void background_MouseDown(object sender, MouseArg e)
 		{
@@ -250,9 +256,9 @@ namespace PoshDemo
 				return null;
 			}
 		}
+		#endregion event-delegation
 
-		//websocket stuff
-		
+		#region posh		
 		//new session/client connected
 		void PoshSessionCreated(object sender, SessionEventArgs e)
 		{
@@ -281,15 +287,7 @@ namespace PoshDemo
 			Log("dumping");
 			return ViewRoot.GetXML();
 		}
-		
-		//cleanup
-		void MainForm_Disposed(object sender, EventArgs e)
-		{
-			WebServer.Stop();
-			
-			FWAMPServer.Dispose();
-			FWAMPServer = null;
-		}
+		#endregion posh
 	}
 	
 	#region handlers
