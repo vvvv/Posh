@@ -136,7 +136,7 @@ namespace PoshDemo
 			AddSomeRects();
 			
 			//clear context as initial stuff will come via dump already
-            FWAMPServer.RemoteContext.ClearAll();
+			FWAMPServer.RemoteContext.ClearAll();
 		}
 		
 		void AddSomeRects()
