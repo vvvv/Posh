@@ -213,11 +213,13 @@ namespace Posh
 			if(string.IsNullOrEmpty(elem.ID))
 				return true;
 			
+			if (AddElements.Contains(elem))
+				return true;
+			
 			foreach (var possibleparent in AddElements)
 			{
 				if(string.IsNullOrEmpty(possibleparent.ID))
 				   continue;
-				
 				   
 				if(elem.ID.StartsWith(possibleparent.ID))
 					return true;
