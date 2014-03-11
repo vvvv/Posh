@@ -19,17 +19,19 @@ namespace Posh
 		{
 			FCaller = caller;
 			RemoteContext = remoteContext;
+			doc.ChildAdded += element_ChildAdded;
 		}
 		
 		public override bool AddAndFixID(SvgElement element, SvgElement sibling, bool autoFixID, Action<SvgElement, string, string> logElementOldIDNewID)
 		{
+			//register events
 			element.AttributeChanged += element_AttributeChanged;
 			element.ContentChanged += element_ContentChanged;
 			element.ChildAdded += element_ChildAdded;
 			
 			if(element is SvgVisualElement)
 			{
-				//register events
+				//check id
 				if(string.IsNullOrWhiteSpace(element.ID))
 				{
 					if(element.Parent != null)
@@ -38,16 +40,6 @@ namespace Posh
 						element.SetAndFixID(RandomString(16), true, null);
 				}
 				
-				element.RegisterEvents(FCaller);
-			}
-			
-			if(sibling == null)
-			{
-				RemoteContext.AddElement(element);
-			}
-			else
-			{
-				RemoteContext.InsertElementBefore(element, sibling);
 			}
 			
 			return base.AddAndFixID(element, sibling, true, logElementOldIDNewID);
@@ -70,20 +62,37 @@ namespace Posh
 			RemoteContext.AddContentUpdate(sender as SvgElement);
 		}
 
+		//if child was added
 		void element_ChildAdded(object sender, ChildAddedEventArgs e)
 		{
-			if(!(sender is SvgDocument) && e.NewChild is SvgVisualElement)
+			var parent = sender as SvgElement;
+			if(e.NewChild is SvgVisualElement)
 			{
 				var newChild = e.NewChild;
-				if(!string.IsNullOrWhiteSpace(newChild.Parent.ID) && !newChild.ID.StartsWith(newChild.Parent.ID + "/"))
+				if((!newChild.ID.StartsWith(parent.ID + "/") || parent is SvgDocument) && !(parent is SvgDefinitionList))
 				{
 					newChild.ApplyRecursive( elem => 
 					                        {
 					                        	var oldID = elem.ID.Substring(elem.ID.LastIndexOf("/") + 1);
-					                        	elem.SetAndFixID(newChild.Parent.ID + "/" + oldID);
+					                        	elem.SetAndFixID(elem.Parent.ID + "/" + oldID);
+					                        	elem.RegisterEvents(FCaller);
 					                        });
 				}
 			}
+			
+			//add to remote context
+			if(e.NewChild.OwnerDocument != null)
+			{
+				if(e.BeforeSibling == null)
+				{
+					RemoteContext.AddElement(e.NewChild);
+				}
+				else
+				{
+					RemoteContext.InsertElementBefore(e.NewChild, e.BeforeSibling);
+				}
+			}
+			
 		}
 		
 		public override void Remove(SvgElement element)
