@@ -39,11 +39,9 @@ namespace Posh
 					else
 						element.SetAndFixID(RandomString(16), true, null);
 				}
-				
 			}
 			
 			return base.AddAndFixID(element, sibling, true, logElementOldIDNewID);
-			
 		}
 		
 		//any atrribute changed
@@ -105,12 +103,7 @@ namespace Posh
 				element.UnregisterEvents(FCaller);
 			
 			if(!string.IsNullOrWhiteSpace(element.ID))
-			{
-				if(!RemoteContext.RemoveAddElementIfExists(element))
-				{
-					RemoteContext.AddRemoveID(element.ID);
-				}
-			}
+				RemoteContext.AddRemoveElement(element);
 			
 			base.Remove(element);
 		}

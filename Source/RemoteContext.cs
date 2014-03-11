@@ -268,14 +268,17 @@ namespace Posh
 			return RemoveIDList.Count > 0;
 		}
 		
-		public void AddRemoveID(string id)
+		public void AddRemoveElement(SvgElement element)
 		{
 			lock(RemoveIDList)
 			{
-				if(ExistsRemoveID(id))
+				if(ExistsRemoveID(element.ID))
 					return;
 				
-				RemoveIDList.Add(id);
+				if (ExistsAddElement(element))
+					throw new Exception("Element cannot be in Add- and RemoveLists at the same time");
+				
+				RemoveIDList.Add(element.ID);
 			}
 		}
 		
