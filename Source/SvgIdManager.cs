@@ -58,12 +58,10 @@ namespace Posh
 		void element_AttributeChanged(object sender, AttributeEventArgs e)
 		{
 			var elem = sender as SvgElement;
-			if(elem.ID != "TimeBar")
-			{
-				var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
-				System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
-				RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
-			}
+			var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
+			System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
+			RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
+			
 		}
 
 		//content of element changed
@@ -99,7 +97,10 @@ namespace Posh
 			
 			if(!string.IsNullOrWhiteSpace(element.ID))
 			{
-				RemoteContext.AddRemoveID(element.ID);
+				if(!RemoteContext.RemoveAddElementIfExists(element))
+				{
+					RemoteContext.AddRemoveID(element.ID);
+				}
 			}
 			
 			base.Remove(element);

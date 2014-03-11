@@ -90,7 +90,7 @@ namespace Posh
 				}
 				
 				result = JsonConvert.SerializeObject(this);
-				ClearAttributeUpdate();
+				ClearAttributeUpdates();
 			}
 			
 			return result;
@@ -112,7 +112,7 @@ namespace Posh
 			}
 		}
 		
-		public void ClearAttributeUpdate()
+		public void ClearAttributeUpdates()
 		{
 			Updates.Clear();
 			FUpdates.Clear();
@@ -144,13 +144,7 @@ namespace Posh
 			if(string.IsNullOrEmpty(elem.ID))
 				return true;
 			
-			foreach (var parent in ContentElements)
-			{
-				if(elem.ID.StartsWith(parent.ID))
-					return true;
-			}
-			
-			return false;
+			return ContentElements.Contains(elem);
 		}
 		
 		public string GetContentUpdateJson()
@@ -185,6 +179,11 @@ namespace Posh
 			return AddElements.Count > 0;
 		}
 		
+		public bool RemoveAddElementIfExists(SvgElement element)
+		{
+			return AddElements.Remove(element);
+		}
+		
 		public void AddElement(SvgElement element)
 		{
 			lock(AddElements)
@@ -214,13 +213,13 @@ namespace Posh
 			if(string.IsNullOrEmpty(elem.ID))
 				return true;
 			
-			foreach (var parent in AddElements)
+			foreach (var possibleparent in AddElements)
 			{
-				if(string.IsNullOrEmpty(parent.ID))
+				if(string.IsNullOrEmpty(possibleparent.ID))
 				   continue;
 				
 				   
-				if(elem.ID.StartsWith(parent.ID))
+				if(elem.ID.StartsWith(possibleparent.ID))
 					return true;
 			}
 			
@@ -276,13 +275,13 @@ namespace Posh
 			if(string.IsNullOrEmpty(id))
 				return true;
 			
-			foreach (var parentID in RemoveIDList)
+			foreach (var possibleparentID in RemoveIDList)
 			{
-				if(string.IsNullOrEmpty(parentID))
+				if(string.IsNullOrEmpty(possibleparentID))
 				   continue;
 				
 				   
-				if(id.StartsWith(parentID))
+				if(id.StartsWith(possibleparentID))
 					return true;
 			}
 			
@@ -312,8 +311,10 @@ namespace Posh
 		public void ClearAll()
 		{
 			ClearAdd();
-			ClearAttributeUpdate();
+			ClearAttributeUpdates();
+			ClearContentUpdates();
 			ClearRemove();
 		}
+		
 	}
 }

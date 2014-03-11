@@ -22,7 +22,7 @@ namespace Posh
 		
 		public Dictionary<string, string> SessionNames = new Dictionary<string, string>();
 		//contexts
-		public RemoteContext MainLoopUpdateContext = new RemoteContext();
+		//public RemoteContext MainLoopUpdateContext = new RemoteContext();
 		public RemoteContext RemoteContext = new RemoteContext();
 		
 		public Action<bool, bool, bool, int> OnKeyDown;
@@ -206,17 +206,13 @@ namespace Posh
 			}
 		}
 		
-		public void PublishMainLoopAttributes()
+		//publish all
+		public void PublishAll(object sender, EventArgs notInUse)
 		{
-			if(MainLoopUpdateContext.HasAttributeUpdates())
-			{
-				MainLoopUpdateContext.SessionName = "mainloop";
-				var json = MainLoopUpdateContext.GetAttributeUpdateJson();
-				
-	            WampListener.Publish("updateattribute", "listener", json, null, null, false);
-	
-	            MainLoopUpdateContext.ClearAttributeUpdate();
-			}
+			PublishAdd(sender, notInUse);
+			PublishUpdate(sender, notInUse);
+			PublishContent(sender, notInUse);
+			PublishRemove(sender, notInUse);
 		}
 		
 		private void SessionCreated(object sender, SessionEventArgs e)
@@ -272,14 +268,6 @@ namespace Posh
 		{
             if (OnKeyPress != null)
                 OnKeyPress(ctrl, shift, alt, key);
-		}
-		
-		public void PublishAll(object sender, EventArgs notInUse)
-		{
-			PublishAdd(sender, notInUse);
-			PublishUpdate(sender, notInUse);
-			PublishContent(sender, notInUse);
-			PublishRemove(sender, notInUse);
 		}
 	}
 	
