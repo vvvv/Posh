@@ -181,7 +181,14 @@ namespace Posh
 		
 		public bool RemoveAddElementIfExists(SvgElement element)
 		{
-			return AddElements.Remove(element);
+			bool result;
+			
+			lock(AddElements)
+			{
+				result = AddElements.Remove(element);
+			}
+			
+			return result;
 		}
 		
 		public void AddElement(SvgElement element)
