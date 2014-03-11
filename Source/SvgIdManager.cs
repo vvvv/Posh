@@ -76,6 +76,10 @@ namespace Posh
 					                        	elem.RegisterEvents(FCaller);
 					                        });
 				}
+				else
+				{
+					newChild.RegisterEvents(FCaller);
+				}
 			}
 			
 			//add to remote context
