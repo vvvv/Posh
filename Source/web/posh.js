@@ -21,8 +21,8 @@ window.onload = function()
 		$('#sessionID').text('Session ID: ' + sessionID);
 
 		ws.subscribe("add", onAdd);
-		ws.subscribe("update-attribute", onUpdateAttribute);
-		ws.subscribe("update-content", onUpdateContent);
+		ws.subscribe("updateattribute", onUpdateAttribute);
+		ws.subscribe("updatecontent", onUpdateContent);
 		ws.subscribe("remove", onRemove);
 		ws.call("dump").then(dumpResult); 
 
