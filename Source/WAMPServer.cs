@@ -58,8 +58,8 @@ namespace Posh
 			WampListener.Listen();
 			WampListener.FixedTopics = true;
 			WampListener.CreateTopic("add");
-			WampListener.CreateTopic("update-attribute");
-			WampListener.CreateTopic("update-content");
+			WampListener.CreateTopic("updateattribute");
+			WampListener.CreateTopic("updatecontent");
 			WampListener.CreateTopic("remove");
 			WampListener.SessionCreated += SessionCreated;
 			WampListener.SessionClosed += SessionClosed;
@@ -172,7 +172,7 @@ namespace Posh
 			if(RemoteContext.HasAttributeUpdates())
 			{
 				var json = RemoteContext.GetAttributeUpdateJson();
-				WampListener.Publish("update-attribute", "listener", json, null, null, false);
+				WampListener.Publish("updateattribute", "listener", json, null, null, false);
 			}
 		}
 		
@@ -182,7 +182,7 @@ namespace Posh
 			if(RemoteContext.HasContentUpdates())
 			{
 				var json = RemoteContext.GetContentUpdateJson();
-				WampListener.Publish("update-content", "listener", json, null, null, false);
+				WampListener.Publish("updatecontent", "listener", json, null, null, false);
 			}
 		}
 		
