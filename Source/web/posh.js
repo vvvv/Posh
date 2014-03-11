@@ -1,6 +1,6 @@
 /*
 posh 0.1
-by http://vvvv.org
+brought to you by http://vvvv.org
 */
 
 var ws;
@@ -21,7 +21,8 @@ window.onload = function()
 		$('#sessionID').text('Session ID: ' + sessionID);
 
 		ws.subscribe("add", onAdd);
-		ws.subscribe("update", onUpdate);
+		ws.subscribe("update-attribute", onUpdateAttribute);
+		ws.subscribe("update-content", onUpdateContent);
 		ws.subscribe("remove", onRemove);
 		ws.call("dump").then(dumpResult); 
 
@@ -412,7 +413,7 @@ function onAdd(topicUri, event)
 }
 
 var $elementLookup = {};
-function onUpdate(topicUri, event) 
+function onUpdateAttribute(topicUri, event) 
 {
 	//log(event);
 	startTimer();
@@ -424,20 +425,36 @@ function onUpdate(topicUri, event)
 	while ( i-- ) 
 	{
 		update = data.Updates[i];
-		//caching updates
+		
+		//get (cached) element
 		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
 		
 		//setting all attributes at once
-		//$element.attr(update.Attributes);
-		  
-		//setting attributes one after the other 
-		for (var name in update.attributes)
-		{
-			if (name)
-				$element.attr(name, update.attributes[name]);
-			else //hack: no attribute name means innerhtml
-				$element.text(update.attributes[name]);
-		}
+		$element.attr(update.attributes);
+	}
+	
+	setLastChangeName(data.SessionName + ": update");
+	stopTimer();
+}
+
+function onUpdateContent(topicUri, event) 
+{
+	//log(event);
+	startTimer();
+
+	var data = JSON.parse(event);
+	var $element, i, update;
+
+	i = data.Updates.length;
+	while ( i-- ) 
+	{
+		update = data.Updates[i];
+		
+		//get (cached) element
+		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
+		
+		//setting elements text content
+		$element.text(update.text);
 	}
 	
 	setLastChangeName(data.SessionName + ": update");
