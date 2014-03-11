@@ -454,7 +454,7 @@ function onUpdateContent(topicUri, event)
 		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
 		
 		//setting elements text content
-		$element.text(update.text);
+		$element.text(update.content);
 	}
 	
 	setLastChangeName(data.SessionName + ": update");

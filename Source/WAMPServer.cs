@@ -213,7 +213,7 @@ namespace Posh
 				MainLoopUpdateContext.SessionName = "mainloop";
 				var json = MainLoopUpdateContext.GetAttributeUpdateJson();
 				
-	            WampListener.Publish("update", "listener", json, null, null, false);
+	            WampListener.Publish("updateattribute", "listener", json, null, null, false);
 	
 	            MainLoopUpdateContext.ClearAttributeUpdate();
 			}
