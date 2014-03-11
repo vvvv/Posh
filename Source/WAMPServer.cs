@@ -58,7 +58,8 @@ namespace Posh
 			WampListener.Listen();
 			WampListener.FixedTopics = true;
 			WampListener.CreateTopic("add");
-			WampListener.CreateTopic("update");
+			WampListener.CreateTopic("update-attribute");
+			WampListener.CreateTopic("update-content");
 			WampListener.CreateTopic("remove");
 			WampListener.SessionCreated += SessionCreated;
 			WampListener.SessionClosed += SessionClosed;
@@ -75,14 +76,6 @@ namespace Posh
 
 			//create event caller for svg            
 			EventCaller = new SvgEventCaller(WampListener);
-		}
-		
-		public void SetActiveSession(string sessionID)
-		{
-			if (SessionNames.ContainsKey(sessionID))
-				RemoteContext.SessionName = SessionNames[sessionID];
-			else
-				RemoteContext.SessionName = "";
 		}
 		
 		private bool FAutoPublishAfterRemoteCall;
@@ -176,10 +169,20 @@ namespace Posh
 		//publish json massage with updated attributes
 		void PublishUpdate(object sender, EventArgs e)
 		{
-			if(RemoteContext.HasUpdates())
+			if(RemoteContext.HasAttributeUpdates())
 			{
-				var json = RemoteContext.GetUpdateJson();
-				WampListener.Publish("update", "listener", json, null, null, false);
+				var json = RemoteContext.GetAttributeUpdateJson();
+				WampListener.Publish("update-attribute", "listener", json, null, null, false);
+			}
+		}
+		
+		//publish json massage with updated attributes
+		void PublishContent(object sender, EventArgs e)
+		{
+			if(RemoteContext.HasContentUpdates())
+			{
+				var json = RemoteContext.GetContentUpdateJson();
+				WampListener.Publish("update-content", "listener", json, null, null, false);
 			}
 		}
 		
@@ -205,14 +208,14 @@ namespace Posh
 		
 		public void PublishMainLoopAttributes()
 		{
-			if(MainLoopUpdateContext.HasUpdates())
+			if(MainLoopUpdateContext.HasAttributeUpdates())
 			{
 				MainLoopUpdateContext.SessionName = "mainloop";
-				var json = MainLoopUpdateContext.GetUpdateJson();
+				var json = MainLoopUpdateContext.GetAttributeUpdateJson();
 				
 	            WampListener.Publish("update", "listener", json, null, null, false);
 	
-	            MainLoopUpdateContext.ClearUpdate();
+	            MainLoopUpdateContext.ClearAttributeUpdate();
 			}
 		}
 		
@@ -275,6 +278,7 @@ namespace Posh
 		{
 			PublishAdd(sender, notInUse);
 			PublishUpdate(sender, notInUse);
+			PublishContent(sender, notInUse);
 			PublishRemove(sender, notInUse);
 		}
 	}

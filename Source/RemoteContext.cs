@@ -26,9 +26,32 @@ namespace Posh
 	}
 	
 	/// <summary>
+	/// Helper class for content updates
+	/// </summary>
+	public class ContentUpdate
+	{
+		public string id;
+		public string content;
+		public ContentUpdate(string id, string content)
+		{
+			this.id = id;
+			this.content = content;
+		}
+	}
+	
+	/// <summary>
+	/// Helper class for content updates
+	/// </summary>
+	public class ContentUpdateJsonObject
+	{
+		public string SessionName;
+		public List<ContentUpdate> Updates = new List<ContentUpdate>();
+	}
+	
+	/// <summary>
 	/// Helper class for removes
 	/// </summary>
-	public class RemoveJson
+	public class RemoveJsonObject
 	{
 		public string SessionName;
 		public List<string> RemoveIDList = new List<string>();
@@ -41,12 +64,12 @@ namespace Posh
 		public List<AttributeUpdate> Updates = new List<AttributeUpdate>();
 		private Dictionary<string, Dictionary<string, object>> FUpdates = new Dictionary<string, Dictionary<string, object>>();
 		
-		public bool HasUpdates()
+		public bool HasAttributeUpdates()
 		{
 			return FUpdates.Count > 0;
 		}
 		
-		public string GetUpdateJson()
+		public string GetAttributeUpdateJson()
 		{
 			string result;
 			lock(FUpdates)
@@ -67,14 +90,14 @@ namespace Posh
 				}
 				
 				result = JsonConvert.SerializeObject(this);
-				ClearUpdate();
+				ClearAttributeUpdate();
 			}
 			
 			return result;
 			
 		}
 		
-		public void AddAttribute(string ID, string name, object value)
+		public void AddAttributeUpdate(string ID, string name, object value)
 		{
 			lock(FUpdates)
 			{
@@ -89,12 +112,70 @@ namespace Posh
 			}
 		}
 		
-		public void ClearUpdate()
+		public void ClearAttributeUpdate()
 		{
 			Updates.Clear();
 			FUpdates.Clear();
 		}
 		#endregion update
+		
+		#region content
+		private List<SvgElement> ContentElements = new List<SvgElement>();
+		
+		public bool HasContentUpdates()
+		{
+			return ContentElements.Count > 0;
+		}
+		
+		public void AddContentUpdate(SvgElement element)
+		{
+			lock(ContentElements)
+			{
+				if(!ExistsContentElement(element))
+				{
+					ContentElements.Add(element);
+				}
+			}
+		}
+		
+		protected bool ExistsContentElement(SvgElement elem)
+		{
+			//needs id
+			if(string.IsNullOrEmpty(elem.ID))
+				return true;
+			
+			foreach (var parent in ContentElements)
+			{
+				if(elem.ID.StartsWith(parent.ID))
+					return true;
+			}
+			
+			return false;
+		}
+		
+		public string GetContentUpdateJson()
+		{
+			string result;
+			lock(ContentElements)
+			{
+				var contender = new ContentUpdateJsonObject();
+				contender.SessionName = SessionName;
+				foreach (var element in ContentElements) 
+				{
+					contender.Updates.Add(new ContentUpdate(element.ID, element.Content));
+				}
+				result = JsonConvert.SerializeObject(contender);
+				ClearContentUpdates();
+			}
+			return result;
+		}
+		
+		void ClearContentUpdates()
+		{
+			ContentElements.Clear();
+		}
+		
+		#endregion content
 		
 		#region add/insert
 		private List<SvgElement> AddElements = new List<SvgElement>();
@@ -104,7 +185,7 @@ namespace Posh
 			return AddElements.Count > 0;
 		}
 		
-		public void Add(SvgElement element)
+		public void AddElement(SvgElement element)
 		{
 			lock(AddElements)
 			{
@@ -115,7 +196,7 @@ namespace Posh
 			}
 		}
 		
-		public void InsertBefore(SvgElement element, SvgElement sibling)
+		public void InsertElementBefore(SvgElement element, SvgElement sibling)
 		{
 			lock(AddElements)
 			{
@@ -218,7 +299,7 @@ namespace Posh
 			string result;
 			lock(RemoveIDList)
 			{
-				var remover = new RemoveJson();
+				var remover = new RemoveJsonObject();
 				remover.SessionName = SessionName;
 				remover.RemoveIDList = RemoveIDList;
 				result = JsonConvert.SerializeObject(remover);
@@ -231,7 +312,7 @@ namespace Posh
 		public void ClearAll()
 		{
 			ClearAdd();
-			ClearUpdate();
+			ClearAttributeUpdate();
 			ClearRemove();
 		}
 	}

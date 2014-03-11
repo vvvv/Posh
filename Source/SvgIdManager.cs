@@ -24,6 +24,7 @@ namespace Posh
 		public override bool AddAndFixID(SvgElement element, SvgElement sibling, bool autoFixID, Action<SvgElement, string, string> logElementOldIDNewID)
 		{
 			element.AttributeChanged += element_AttributeChanged;
+			element.ContentChanged += element_ContentChanged;
 			element.ChildAdded += element_ChildAdded;
 			
 			if(element is SvgVisualElement)
@@ -42,15 +43,33 @@ namespace Posh
 			
 			if(sibling == null)
 			{
-				RemoteContext.Add(element);
+				RemoteContext.AddElement(element);
 			}
 			else
 			{
-				RemoteContext.InsertBefore(element, sibling);
+				RemoteContext.InsertElementBefore(element, sibling);
 			}
 			
 			return base.AddAndFixID(element, sibling, true, logElementOldIDNewID);
 			
+		}
+		
+		//any atrribute changed
+		void element_AttributeChanged(object sender, AttributeEventArgs e)
+		{
+			var elem = sender as SvgElement;
+			if(elem.ID != "TimeBar")
+			{
+				var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
+				System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
+				RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
+			}
+		}
+
+		//content of element changed
+		void element_ContentChanged(object sender, ContentEventArgs e)
+		{
+			RemoteContext.AddContentUpdate(sender as SvgElement);
 		}
 
 		void element_ChildAdded(object sender, ChildAddedEventArgs e)
@@ -72,6 +91,7 @@ namespace Posh
 		public override void Remove(SvgElement element)
 		{
 			element.AttributeChanged -= element_AttributeChanged;
+			element.ContentChanged -= element_ContentChanged;
 			element.ChildAdded -= element_ChildAdded;
 			
 			if(element is SvgVisualElement)
@@ -83,17 +103,6 @@ namespace Posh
 			}
 			
 			base.Remove(element);
-		}
-		
-		void element_AttributeChanged(object sender, AttributeEventArgs e)
-		{
-			var elem = sender as SvgElement;
-			if(elem.ID != "TimeBar")
-			{
-				var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
-				System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
-				RemoteContext.AddAttribute((sender as SvgElement).ID, e.Attribute, e.Value);
-			}
 		}
 		
 		private const string _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
