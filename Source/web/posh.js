@@ -91,7 +91,7 @@ $(document).ready(function()
 	{
 		if (overTargetCall)
 		{
-			ws.call(overTargetCall, e.originalEvent.wheelDelta / 120 + 100, sessionID);
+			ws.call(overTargetCall, e.originalEvent.wheelDelta / 120, sessionID);
 			//prevent page fom scrolling
 			return false;
 		}
