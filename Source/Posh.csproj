@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Posh</RootNamespace>
     <AssemblyName>Posh</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -39,6 +39,18 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Reactive.Core">
+      <HintPath>..\packages\Rx-Core.2.2.2\lib\net45\System.Reactive.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces">
+      <HintPath>..\packages\Rx-Interfaces.2.2.2\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.Linq">
+      <HintPath>..\packages\Rx-Linq.2.2.2\lib\net45\System.Reactive.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reactive.PlatformServices">
+      <HintPath>..\packages\Rx-PlatformServices.2.2.3\lib\net45\System.Reactive.PlatformServices.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq">
@@ -46,24 +58,24 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PoshServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteContext.cs" />
     <Compile Include="SvgIdManager.cs" />
-    <Compile Include="WAMPServer.cs" />
     <Compile Include="WebServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NWamp\NWamp.SuperWebSocket\NWamp.SuperWebSocket.csproj">
-      <Project>{7C335119-2F26-484A-856F-0DECC544C0DE}</Project>
-      <Name>NWamp.SuperWebSocket</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\NWamp\NWamp\NWamp.csproj">
-      <Project>{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}</Project>
-      <Name>NWamp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\SVG\Source\Svg.csproj">
       <Project>{886A98C5-37C0-4E8B-885E-30C1D2F98B47}</Project>
       <Name>Svg</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\WampSharp\src\WampSharp.Default\WampSharp.Default.csproj">
+      <Project>{6AB75291-D296-457E-88A3-B41B16A1A247}</Project>
+      <Name>WampSharp.Default</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\WampSharp\src\WampSharp\WampSharp.csproj">
+      <Project>{653A76DC-00D7-4EFF-A25E-2FA10C5C927D}</Project>
+      <Name>WampSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

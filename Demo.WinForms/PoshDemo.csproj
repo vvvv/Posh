@@ -7,7 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>SVGTerminalDemo</RootNamespace>
     <AssemblyName>PoshDemo</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -35,8 +35,8 @@
     <Reference Include="log4net">
       <HintPath>..\Dependencies\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="SuperSocket.SocketEngine">
-      <HintPath>..\Dependencies\SuperSocket.SocketEngine.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -77,10 +77,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\NWamp\NWamp\NWamp.csproj">
-      <Project>{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}</Project>
-      <Name>NWamp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\SVG\Source\Svg.csproj">
       <Project>{886A98C5-37C0-4E8B-885E-30C1D2F98B47}</Project>
       <Name>Svg</Name>

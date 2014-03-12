@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using NWamp;
 using Posh;
 using PoshDemo;
 using Svg;
@@ -60,7 +59,7 @@ namespace PoshDemo
 	/// </summary>
 	public partial class MainForm : Form
 	{
-		WAMPServer FWAMPServer;
+		PoshServer FPoshServer;
 		Action<string> Log;
 		SvgDocument ViewRoot;
 		SvgGroup FRectGroup;
@@ -80,10 +79,10 @@ namespace PoshDemo
 			var port = WebServer.URLPort[url];
 			
 			//create a wampserver/websocket on the given port
-			FWAMPServer = new WAMPServer(port);
-			FWAMPServer.OnDump += PoshGraphDump;
-			FWAMPServer.OnSessionCreated += PoshSessionCreated;
-			FWAMPServer.OnSessionClosed += PoshSessionClosed;
+			FPoshServer = new PoshServer(port);
+			FPoshServer.OnDump += PoshGraphDump;
+			FPoshServer.OnSessionCreated += PoshSessionCreated;
+			FPoshServer.OnSessionClosed += PoshSessionClosed;
 
 			//setup keyboard handlers
 //			FWAMPServer.OnKeyDown += KeyDownHandler;
@@ -94,7 +93,7 @@ namespace PoshDemo
 			ViewRoot = new SvgDocument();
 
 			//hand the svg document a custom idmanager that talks to the WampServer
-			var manager = new SvgIdManager(ViewRoot, FWAMPServer.EventCaller, FWAMPServer.RemoteContext);
+			var manager = new SvgIdManager(ViewRoot, FPoshServer.EventCaller, FPoshServer.RemoteContext);
             ViewRoot.OverwriteIdManager(manager);
                        
 			//fill the svg document
@@ -108,7 +107,7 @@ namespace PoshDemo
 			this.Disposed += (s, e) => 
 				{
 					WebServer.Stop();
-					FWAMPServer.Dispose();
+					FPoshServer.Dispose();
 				};
 		}
 		
@@ -136,7 +135,7 @@ namespace PoshDemo
 			AddSomeRects();
 			
 			//clear context as initial stuff will come via dump already
-			FWAMPServer.RemoteContext.ClearAll();
+			FPoshServer.RemoteContext.ClearAll();
 		}
 		
 		void AddSomeRects()
@@ -265,25 +264,25 @@ namespace PoshDemo
 
 		#region posh		
 		//new session/client connected
-		void PoshSessionCreated(object sender, SessionEventArgs e)
+		void PoshSessionCreated(string sessionID)
 		{
-			Log("session created " + e.SessionId);
-			var param = new SessionParameters(e.SessionId);
-			FSessionParams[e.SessionId] = param;
+			Log("session created " + sessionID);
+			var param = new SessionParameters(sessionID);
+			FSessionParams[sessionID] = param;
 			ViewRoot.Children.Add(param.SelectionRect);
 			ViewRoot.Children.Add(param.Label);
 		}
 
 		//session closed
-		void PoshSessionClosed(object sender, SessionEventArgs e)
+		void PoshSessionClosed(string sessionID)
 		{
-			Log("session closed " + e.SessionId);
-			foreach (var rect in FSessionParams[e.SessionId].SelectedRects) 
+			Log("session closed " + sessionID);
+			foreach (var rect in FSessionParams[sessionID].SelectedRects) 
 			{
 				rect.Unselect();
 			}
-			ViewRoot.Children.Remove(FSessionParams[e.SessionId].SelectionRect);
-			FSessionParams.Remove(e.SessionId);
+			ViewRoot.Children.Remove(FSessionParams[sessionID].SelectionRect);
+			FSessionParams.Remove(sessionID);
 		}
 		
 		//dump whole SVG scene graph

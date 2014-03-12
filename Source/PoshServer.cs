@@ -3,79 +3,89 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Net;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NWamp;
 using Svg;
+using WampSharp;
+using WampSharp.PubSub.Server;
+using WampSharp.Rpc;
+using WampSharp.Rpc.Server;
 
 namespace Posh
 {
+	public interface IPoshRPCs
+    {
+        [WampRpcMethod("dump")]
+        string Dump();
+        
+        [WampRpcMethod("setSessionName")]
+        string SetSessionName(string sessionID, string sessionName);
+		
+        [WampRpcMethod("keyDown")]
+		void KeyDown(bool ctrl, bool shift, bool alt, int keyCode);
+		
+        [WampRpcMethod("keyUp")]
+		void KeyUp(bool ctrl, bool shift, bool alt, int keyCode);
+		
+        [WampRpcMethod("keyPress")]
+		void KeyPress(bool ctrl, bool shift, bool alt, char key);
+    }
+    
 	/// <summary>
 	/// The Wamp Server
 	/// </summary>
-	public class WAMPServer: IDisposable
+	public class PoshServer: IDisposable, IPoshRPCs
 	{
 		private bool FDisposed = false;
 		
 		public ISvgEventCaller EventCaller;
 		
 		public Dictionary<string, string> SessionNames = new Dictionary<string, string>();
-		//contexts
-		//public RemoteContext MainLoopUpdateContext = new RemoteContext();
 		public RemoteContext RemoteContext = new RemoteContext();
 		
 		public Action<bool, bool, bool, int> OnKeyDown;
 		public Action<bool, bool, bool, int> OnKeyUp;
 		public Action<bool, bool, bool, char> OnKeyPress;
 		
-		public Action<object, SessionEventArgs> OnSessionCreated;
-		public Action<object, SessionEventArgs> OnSessionClosed;
+		public Action<string> OnSessionCreated;
+		public Action<string> OnSessionClosed;
 		public Func<string> OnDump;
 		
 		//network connection
-		private SuperWebSocketWampListener WampListener;
+		private DefaultWampHost FWampHost;
 		
-		private static object Map(object source, Type sourceType, Type destinationType)
-        {
-            if (sourceType == destinationType) return source;
-            if (source == null) return source;
-            
-            if(source is JToken)
-            {
-		        var jobj = source as JToken;
-		        return jobj.ToObject(destinationType);
-            }
-            else
-            {
-            	return Convert.ChangeType(source, destinationType);
-            }
-        }
+		//posh topics
+		private IWampTopic FAddTopic;
+		private IWampTopic FUpdateAttributeTopic;
+		private IWampTopic FUpdateContentTopic;
+		private IWampTopic FRemoveTopic;
 		
-		public WAMPServer(int port)
+		public PoshServer(int port)
 		{
-			WampListener = new SuperWebSocketWampListener(IPAddress.Any, port, JsonConvert.SerializeObject, JsonConvert.DeserializeObject<object[]>, Map);
-			WampListener.Listen();
-			WampListener.FixedTopics = true;
-			WampListener.CreateTopic("add");
-			WampListener.CreateTopic("updateattribute");
-			WampListener.CreateTopic("updatecontent");
-			WampListener.CreateTopic("remove");
-			WampListener.SessionCreated += SessionCreated;
-			WampListener.SessionClosed += SessionClosed;
-			WampListener.CallInvoked += PublishAll;
+			string location = "ws://localhost:" + port +"/";
+			FWampHost = new DefaultWampHost(location);
+			FWampHost.Open();
+			
+			// Use this in order to publish events to subscribers.
+			IWampTopicContainer topicContainer = FWampHost.TopicContainer;
+			FAddTopic = topicContainer.CreateTopicByUri("add", true);
+			FUpdateAttributeTopic = topicContainer.CreateTopicByUri("updateattribute", true);
+			FUpdateContentTopic = topicContainer.CreateTopicByUri("updatecontent", true);
+			FRemoveTopic = topicContainer.CreateTopicByUri("remove", true);
+			
+			FWampHost.HostService(this, "");
+			
+			FWampHost.Listener.SessionCreated += SessionCreated;
+			FWampHost.Listener.SessionClosed += SessionClosed;
+			FWampHost.Listener.CallInvoked += PublishAll;
 			
 			//publish all stuff aufter each call from remote
 			AutoPublishAllAfterRemoteCall = true;
 			
-			WampListener.RegisterFunc<string>("dump", Dump);
-			WampListener.RegisterFunc<string, string, string>("setSessionName", SetSessionName);
-            WampListener.RegisterAction<bool, bool, bool, int>("keydown", KeyDown);
-            WampListener.RegisterAction<bool, bool, bool, int>("keyup", KeyUp);
-            WampListener.RegisterAction<bool, bool, bool, char>("keypress", KeyPress);
-
 			//create event caller for svg            
-			EventCaller = new SvgEventCaller(WampListener);
+			EventCaller = new SvgEventCaller(FWampHost);
 		}
 		
 		private bool FAutoPublishAfterRemoteCall;
@@ -92,11 +102,11 @@ namespace Posh
 					FAutoPublishAfterRemoteCall = value;
 					if(FAutoPublishAfterRemoteCall)
 					{
-						WampListener.CallInvoked += PublishAll;
+						FWampHost.Listener.CallInvoked += PublishAll;
 					}
 					else
 					{
-						WampListener.CallInvoked -= PublishAll;
+						FWampHost.Listener.CallInvoked -= PublishAll;
 					}
 				}
 			}
@@ -131,12 +141,10 @@ namespace Posh
 				if(disposing)
 				{
 					// Dispose managed resources.
-					WampListener.SessionCreated -= SessionCreated;
-					WampListener.SessionClosed -= SessionClosed;
-					WampListener.CallInvoked -= PublishAll;
-					
-					WampListener.Dispose();
-					WampListener = null;
+//					WampListener.SessionCreated -= SessionCreated;
+//					WampListener.SessionClosed -= SessionClosed;
+//					WampListener.CallInvoked -= PublishAll;
+					FWampHost.Dispose();
 				}
 				// Release unmanaged resources. If disposing is false,
 				// only the following code is executed.
@@ -157,7 +165,7 @@ namespace Posh
 		// does not get called.
 		// It gives your base class the opportunity to finalize.
 		// Do not provide destructors in types derived from this class.
-		~WAMPServer()
+		~PoshServer()
 		{ 
 			// Do not re-create Dispose clean-up code here.
 			// Calling Dispose(false) is optimal in terms of
@@ -167,80 +175,80 @@ namespace Posh
 		#endregion destructor
 		
 		//publish json massage with updated attributes
-		void PublishUpdate(object sender, EventArgs e)
+		void PublishUpdate()
 		{
 			if(RemoteContext.HasAttributeUpdates())
 			{
 				var json = RemoteContext.GetAttributeUpdateJson();
-				WampListener.Publish("updateattribute", "listener", json, null, null, false);
+				FUpdateAttributeTopic.OnNext(json);
 			}
 		}
 		
 		//publish json massage with updated attributes
-		void PublishContent(object sender, EventArgs e)
+		void PublishContent()
 		{
 			if(RemoteContext.HasContentUpdates())
 			{
 				var json = RemoteContext.GetContentUpdateJson();
-				WampListener.Publish("updatecontent", "listener", json, null, null, false);
+				FUpdateContentTopic.OnNext(json);
 			}
 		}
 		
 		//add messages
-		public void PublishAdd(object sender, EventArgs notInUse)
+		public void PublishAdd()
 		{
 			if(RemoteContext.HasAddElements())
 			{
 				var xml = RemoteContext.GetAddXML();
-				WampListener.Publish("add", "listener", xml, null, null, false);
+				FAddTopic.OnNext(xml);
 			}
 		}
 		
 		//remove messages
-		public void PublishRemove(object sender, EventArgs e)
+		public void PublishRemove()
 		{
 			if(RemoteContext.HasRemoveElements())
 			{
 				var json = RemoteContext.GetRemoveJson();
-				WampListener.Publish("remove", "listener", json, null, null, false);
+				FRemoveTopic.OnNext(json);
 			}
 		}
 		
 		//publish all
-		public void PublishAll(object sender, EventArgs notInUse)
+		public void PublishAll(string sessionID, string rpcID)
 		{
-			PublishAdd(sender, notInUse);
-			PublishUpdate(sender, notInUse);
-			PublishContent(sender, notInUse);
-			PublishRemove(sender, notInUse);
+			PublishAdd();
+			PublishUpdate();
+			PublishContent();
+			PublishRemove();
 		}
 		
-		private void SessionCreated(object sender, SessionEventArgs e)
+		private void SessionCreated(string sessionID)
 		{
-			if (SessionNames.ContainsKey(e.SessionId))
+			if (SessionNames.ContainsKey(sessionID))
 				return; //todo: log an error
 
-			SessionNames.Add(e.SessionId, e.SessionId);
+			SessionNames.Add(sessionID, sessionID);
 
             if (OnSessionCreated != null)
-			    OnSessionCreated(sender, e);
+			    OnSessionCreated(sessionID);
 		}
 		
-		private void SessionClosed(object sender, SessionEventArgs e)
+		private void SessionClosed(string sessionID)
 		{
 			if (OnSessionClosed != null)
-			    OnSessionClosed(sender, e);
+			    OnSessionClosed(sessionID);
 			
-			if (SessionNames.ContainsKey(e.SessionId))
-				SessionNames.Remove(e.SessionId);
+			if (SessionNames.ContainsKey(sessionID))
+				SessionNames.Remove(sessionID);
 		}
 		
-		private string Dump()
+		public string Dump()
 		{
 			return OnDump();
 		}
 		
-		private string SetSessionName(string sessionID, string sessionName)
+		public string SetSessionName(string sessionID, string sessionName)
 		{
 			//note: we want sessionNames to be unique
 			if (SessionNames.ContainsValue(sessionName))
@@ -252,19 +260,19 @@ namespace Posh
 			return sessionName;
 		}
 		
-		private void KeyDown(bool ctrl, bool shift, bool alt, int keyCode)
+		public void KeyDown(bool ctrl, bool shift, bool alt, int keyCode)
 		{
             if (OnKeyDown != null)
 			    OnKeyDown(ctrl, shift, alt, keyCode);
 		}
 		
-		private void KeyUp(bool ctrl, bool shift, bool alt, int keyCode)
+		public void KeyUp(bool ctrl, bool shift, bool alt, int keyCode)
 		{
             if (OnKeyUp != null)
                 OnKeyUp(ctrl, shift, alt, keyCode);
 		}
 		
-		private void KeyPress(bool ctrl, bool shift, bool alt, char key)
+		public void KeyPress(bool ctrl, bool shift, bool alt, char key)
 		{
             if (OnKeyPress != null)
                 OnKeyPress(ctrl, shift, alt, key);
@@ -288,46 +296,59 @@ namespace Posh
 	#region SvgEventCaller
 	public class SvgEventCaller: ISvgEventCaller
 	{
-		private WampListener FListener;
+		private DefaultWampHost FWampHost;
 		
-		public SvgEventCaller(WampListener l)
+		public SvgEventCaller(DefaultWampHost host)
 		{
-			this.FListener = l;
+			FWampHost = host;
 		}
 		
 		public void RegisterAction(string rpcID, Action action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 		
 		public void RegisterAction<T1>(string rpcID, Action<T1> action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 		
 		public void RegisterAction<T1, T2>(string rpcID, Action<T1, T2> action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 		
 		public void RegisterAction<T1, T2, T3>(string rpcID, Action<T1, T2, T3> action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4>(string rpcID, Action<T1, T2, T3, T4> action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 		
 		public void UnregisterAction(string rpcID)
 		{
-			FListener.UnregisterRpcAction(rpcID);
+			//FWampHost.HostService(new DynamicRPC(rpcID, rpcID, action), "");
+//			FListener.UnregisterRpcAction(rpcID);
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4, T5>(string rpcID, Action<T1, T2, T3, T4, T5> action)
 		{
-			FListener.RegisterAction(rpcID, action);
+			var rpc = new DynamicRPC(rpcID);
+			rpc.SetAction(action);
+			FWampHost.Register(rpc);
 		}
 	}
 	#endregion SvgEventCaller
