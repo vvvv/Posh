@@ -111,7 +111,6 @@ namespace Posh
 				}
 			}
 		}
-		
 
 		#region destructor
 		// Implementing IDisposable's Dispose method.
@@ -297,6 +296,7 @@ namespace Posh
 	public class SvgEventCaller: ISvgEventCaller
 	{
 		private DefaultWampHost FWampHost;
+		private Dictionary<string, DynamicRPC> FDynamicRPCs = new Dictionary<string, DynamicRPC>();
 		
 		public SvgEventCaller(DefaultWampHost host)
 		{
@@ -308,6 +308,7 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
 		
 		public void RegisterAction<T1>(string rpcID, Action<T1> action)
@@ -315,6 +316,7 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
 		
 		public void RegisterAction<T1, T2>(string rpcID, Action<T1, T2> action)
@@ -322,6 +324,7 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
 		
 		public void RegisterAction<T1, T2, T3>(string rpcID, Action<T1, T2, T3> action)
@@ -329,6 +332,7 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4>(string rpcID, Action<T1, T2, T3, T4> action)
@@ -336,12 +340,7 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
-		}
-		
-		public void UnregisterAction(string rpcID)
-		{
-			//FWampHost.HostService(new DynamicRPC(rpcID, rpcID, action), "");
-//			FListener.UnregisterRpcAction(rpcID);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4, T5>(string rpcID, Action<T1, T2, T3, T4, T5> action)
@@ -349,7 +348,17 @@ namespace Posh
 			var rpc = new DynamicRPC(rpcID);
 			rpc.SetAction(action);
 			FWampHost.Register(rpc);
+			FDynamicRPCs.Add(rpcID, rpc);
 		}
+		
+		public void UnregisterAction(string rpcID)
+		{
+			if (FDynamicRPCs.ContainsKey(rpcID))
+			{
+				FWampHost.Unregister(FDynamicRPCs[rpcID]);
+				FDynamicRPCs.Remove(rpcID);
+			}			
+		}		
 	}
 	#endregion SvgEventCaller
 	
