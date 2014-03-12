@@ -2,7 +2,7 @@
 misusing the browser as your windowing/drawing layer
 
 requires:
-* https://github.com/vvvv/NWamp
+* https://github.com/vvvv/WampSharp branch: develop
 * https://github.com/vvvv/SVG branch: textEvents
 
 to be cloned next to \Posh
@@ -18,7 +18,7 @@ comes with
 * serves the \web\posh.html as answer to any URL request only with a unique WebSocket port configured for each URL
 * on /root it serves a listing of all saved *.xml documents
 
-### WAMPServer.cs
+### PoshServer.cs
 * has a WebSocket listening on the specified port
 * translates RPCs that come in via WebSocket to local calls
 * registers a WAMPListener on the WebSocket
@@ -26,11 +26,13 @@ comes with
 * publishes Posh RPCs (Dump, SetSessionName, KeyDown, KeyUp, KeyPress)
 * has an __SvgEventCaller__
 * handles a __RemoteContext__ per Session 
- * acts as kind of a buffer between changes to the local and the remote SVG DOM
- * keeps track of local DOM changes
- * provides them in Posh form (json/xml) on demand
 * can publish Posh after every RPC (AutoPublish) or manually on Publish()
- 
+
+### RemoteContext.cs
+* acts as kind of a buffer between changes to the local and the remote SVG DOM
+* keeps track of local DOM changes
+* provides them in Posh form (json/xml) on demand
+
 ### SvgIdManager.cs
 * is a custom ID manager for SVG
 * gets __SvgEventCaller__ from WampServer
