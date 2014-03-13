@@ -71,8 +71,8 @@ namespace Posh
 			// Use this in order to publish events to subscribers.
 			IWampTopicContainer topicContainer = FWampHost.TopicContainer;
 			FAddTopic = topicContainer.CreateTopicByUri("add", true);
-			FUpdateAttributeTopic = topicContainer.CreateTopicByUri("updateattribute", true);
-			FUpdateContentTopic = topicContainer.CreateTopicByUri("updatecontent", true);
+			FUpdateAttributeTopic = topicContainer.CreateTopicByUri("update-attribute", true);
+			FUpdateContentTopic = topicContainer.CreateTopicByUri("update-content", true);
 			FRemoveTopic = topicContainer.CreateTopicByUri("remove", true);
 			
 			FWampHost.HostService(this, "");
@@ -303,52 +303,57 @@ namespace Posh
 			FWampHost = host;
 		}
 		
-		public void RegisterAction(string rpcID, Action action)
+		private void RegisterAction(string rpcID, Action<DynamicRPC> register)
 		{
 			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
+			register(rpc);
 			FWampHost.Register(rpc);
 			FDynamicRPCs.Add(rpcID, rpc);
+		}
+		
+		public void RegisterAction(string rpcID, Action action)
+		{
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void RegisterAction<T1>(string rpcID, Action<T1> action)
 		{
-			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
-			FWampHost.Register(rpc);
-			FDynamicRPCs.Add(rpcID, rpc);
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void RegisterAction<T1, T2>(string rpcID, Action<T1, T2> action)
 		{
-			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
-			FWampHost.Register(rpc);
-			FDynamicRPCs.Add(rpcID, rpc);
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void RegisterAction<T1, T2, T3>(string rpcID, Action<T1, T2, T3> action)
 		{
-			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
-			FWampHost.Register(rpc);
-			FDynamicRPCs.Add(rpcID, rpc);
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4>(string rpcID, Action<T1, T2, T3, T4> action)
 		{
-			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
-			FWampHost.Register(rpc);
-			FDynamicRPCs.Add(rpcID, rpc);
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void RegisterAction<T1, T2, T3, T4, T5>(string rpcID, Action<T1, T2, T3, T4, T5> action)
 		{
-			var rpc = new DynamicRPC(rpcID);
-			rpc.SetAction(action);
-			FWampHost.Register(rpc);
-			FDynamicRPCs.Add(rpcID, rpc);
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
+		}
+		
+		public void RegisterAction<T1, T2, T3, T4, T5, T6>(string rpcID, Action<T1, T2, T3, T4, T5, T6> action)
+		{
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
+		}
+		
+		public void RegisterAction<T1, T2, T3, T4, T5, T6, T7>(string rpcID, Action<T1, T2, T3, T4, T5, T6, T7> action)
+		{
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
+		}
+		
+		public void RegisterAction<T1, T2, T3, T4, T5, T6, T7, T8>(string rpcID, Action<T1, T2, T3, T4, T5, T6, T7, T8> action)
+		{
+			RegisterAction(rpcID, dynRPC => dynRPC.SetAction(action));
 		}
 		
 		public void UnregisterAction(string rpcID)
@@ -357,8 +362,8 @@ namespace Posh
 			{
 				FWampHost.Unregister(FDynamicRPCs[rpcID]);
 				FDynamicRPCs.Remove(rpcID);
-			}			
-		}		
+			}
+		}
 	}
 	#endregion SvgEventCaller
 	

@@ -21,8 +21,8 @@ window.onload = function()
 		$('#sessionID').text('Session ID: ' + sessionID);
 
 		ws.subscribe("add", onAdd);
-		ws.subscribe("updateattribute", onUpdateAttribute);
-		ws.subscribe("updatecontent", onUpdateContent);
+		ws.subscribe("update-attribute", onUpdateAttribute);
+		ws.subscribe("update-content", onUpdateContent);
 		ws.subscribe("remove", onRemove);
 		ws.call("dump").then(dumpResult); 
 
@@ -91,7 +91,7 @@ $(document).ready(function()
 	{
 		if (overTargetCall)
 		{
-			ws.call(overTargetCall, e.originalEvent.wheelDelta / 120, sessionID);
+			ws.call(overTargetCall, e.originalEvent.wheelDelta, sessionID);
 			//prevent page fom scrolling
 			return false;
 		}
@@ -234,12 +234,12 @@ function updateEvents(doc)
 		var call = $(this).attr('onclick');
 		$(this).on('click', function(e) 
 		{ 
-			ws.call(call, mouseX(e), mouseY(e), e.which, 1, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 		});
 		
 		$(this).on('dblclick', function(e) 
 		{ 
-			ws.call(call, mouseX(e), mouseY(e), e.which, 2, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 2, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 			log('dbl');
 		});
 		$(this).removeAttr('onclick');
@@ -252,7 +252,7 @@ function updateEvents(doc)
 		{ 
 			e.originalEvent.preventDefault();
 			mouseDownTarget = e.target;
-			ws.call(call, mouseX(e), mouseY(e), e.which, 1, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 			//log(call + ': ' + e.which + ': ' + mouseDownTarget);
 		});
 		$(this).removeAttr('onmousedown');
@@ -263,7 +263,7 @@ function updateEvents(doc)
 		var call = $(this).attr('onmouseup');
 		$(this).on('mouseup', function(e) 
 		{ 
-			ws.call(call, mouseX(e), mouseY(e), e.which, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 			mouseDownTarget = null;
 			log(call + ': ' + e.which);
 		});
@@ -281,7 +281,7 @@ function updateEvents(doc)
 				return;
 			last = now;
 
-			ws.call(call, mouseX(e), mouseY(e), sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 		});
 		$(this).removeAttr('onmousemove');
 	});
@@ -293,7 +293,7 @@ function updateEvents(doc)
 		{ 
 			var to = call.lastIndexOf("/");
 			overTargetCall = call.substring(0, to) + "/onmousescroll";
-			ws.call(call, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 		});
 		$(this).removeAttr('onmouseover');
 	});
@@ -304,7 +304,7 @@ function updateEvents(doc)
 		$(this).on('mouseout', function(e) 
 		{ 
 			overTargetCall = null;
-			ws.call(call, sessionID);
+			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 		});
 		$(this).removeAttr('onmouseout');
 	});

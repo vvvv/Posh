@@ -192,7 +192,7 @@ namespace PoshDemo
 		}
 
 		//move on background
-		void background_MouseMove(object sender, PointArg e)
+		void background_MouseMove(object sender, MouseArg e)
 		{
 			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
 		}
@@ -225,7 +225,7 @@ namespace PoshDemo
 		}
 		
 		//move on rect
-		void rect_MouseMove(object sender, PointArg e)
+		void rect_MouseMove(object sender, MouseArg e)
 		{
 			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
 		}
@@ -422,7 +422,7 @@ namespace PoshDemo
 	public interface IMouseEventHandler
 	{
 		IMouseEventHandler MouseDown(object sender, MouseArg arg);
-		IMouseEventHandler MouseMove(object sender, PointArg arg);
+		IMouseEventHandler MouseMove(object sender, MouseArg arg);
 		IMouseEventHandler MouseUp(object sender, MouseArg arg);
 		string SessionID { get; }
 	}
@@ -466,7 +466,7 @@ namespace PoshDemo
 			return this;
 		}
 
-		public virtual IMouseEventHandler MouseMove(object sender, PointArg arg)
+		public virtual IMouseEventHandler MouseMove(object sender, MouseArg arg)
 		{
 			if(pressed)
 			{
