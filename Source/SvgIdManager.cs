@@ -47,11 +47,15 @@ namespace Posh
 		//any atrribute changed
 		void element_AttributeChanged(object sender, AttributeEventArgs e)
 		{
-			var elem = sender as SvgElement;
-			var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
-			System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
-			RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
-			
+			//setting "inserBeforeID" should not trigger an attributeupdate
+			//it is specially used for adding elements at a specific place in the DOM
+			if (e.Attribute != "insertBeforeID")
+			{
+				var elem = sender as SvgElement;
+				var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
+				System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
+				RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
+			}
 		}
 
 		//content of element changed
