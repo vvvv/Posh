@@ -22,7 +22,7 @@ namespace Posh
 			doc.ChildAdded += element_ChildAdded;
 		}
 		
-		public override bool AddAndFixID(SvgElement element, SvgElement sibling, bool autoFixID, Action<SvgElement, string, string> logElementOldIDNewID)
+		public override bool AddAndForceUniqueID(SvgElement element, SvgElement sibling, bool autoForceUniqueID, Action<SvgElement, string, string> logElementOldIDNewID)
 		{
 			//register events
 			element.AttributeChanged += element_AttributeChanged;
@@ -35,13 +35,13 @@ namespace Posh
 				if(string.IsNullOrWhiteSpace(element.ID))
 				{
 					if(element.Parent != null)
-						element.SetAndFixID(element.Parent.ID + "/" + IDGenerator.NewID, true, null);
+						element.SetAndForceUniqueID(element.Parent.ID + "/" + IDGenerator.NewID, true, null);
 					else
-						element.SetAndFixID(RandomString(16), true, null);
+						element.SetAndForceUniqueID(RandomString(16), true, null);
 				}
 			}
 			
-			return base.AddAndFixID(element, sibling, true, logElementOldIDNewID);
+			return base.AddAndForceUniqueID(element, sibling, true, logElementOldIDNewID);
 		}
 		
 		//any atrribute changed
@@ -76,7 +76,7 @@ namespace Posh
 					newChild.ApplyRecursive( elem => 
 					                        {
 					                        	var oldID = elem.ID.Substring(elem.ID.LastIndexOf("/") + 1);
-					                        	elem.SetAndFixID(elem.Parent.ID + "/" + oldID);
+					                        	elem.SetAndForceUniqueID(elem.Parent.ID + "/" + oldID);
 					                        	elem.RegisterEvents(FCaller);
 					                        });
 				}
