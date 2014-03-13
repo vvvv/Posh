@@ -60,10 +60,7 @@ $(document).ready(function()
 	$(document).on("contextmenu", function(e){
 		  return false;
 	}); 
-	
-	//todo: svgterminal needs api to register shortcuts for which the default should be prevented
-	//if simply preventing for all we cut ourselves out of default browser shortcuts
-		
+			
 	$(document).on('keydown', function(e) 
 	{
 		//e.originalEvent.preventDefault();
