@@ -12,6 +12,7 @@ using WampSharp;
 using WampSharp.PubSub.Server;
 using WampSharp.Rpc;
 using WampSharp.Rpc.Server;
+using WampSharp.Core.Listener.V1;
 
 namespace Posh
 {
@@ -77,8 +78,8 @@ namespace Posh
 			
 			FWampHost.HostService(this, "");
 			
-			FWampHost.Listener.SessionCreated += SessionCreated;
-			FWampHost.Listener.SessionClosed += SessionClosed;
+			FWampHost.SessionCreated += SessionCreated;
+			FWampHost.SessionClosed += SessionClosed;
 			FWampHost.Listener.CallInvoked += PublishAll;
 			
 			//publish all stuff aufter each call from remote
@@ -87,7 +88,7 @@ namespace Posh
 			//create event caller for svg            
 			EventCaller = new SvgEventCaller(FWampHost);
 		}
-		
+
 		private bool FAutoPublishAfterRemoteCall;
 		public bool AutoPublishAllAfterRemoteCall
 		{
@@ -222,24 +223,24 @@ namespace Posh
 			PublishRemove();
 		}
 		
-		private void SessionCreated(string sessionID)
+		private void SessionCreated(object sender, WampSessionEventArgs e)
 		{
-			if (SessionNames.ContainsKey(sessionID))
+			if (SessionNames.ContainsKey(e.SessionId))
 				return; //todo: log an error
 
-			SessionNames.Add(sessionID, sessionID);
+			SessionNames.Add(e.SessionId, e.SessionId);
 
             if (OnSessionCreated != null)
-			    OnSessionCreated(sessionID);
+			    OnSessionCreated(e.SessionId);
 		}
 		
-		private void SessionClosed(string sessionID)
+		private void SessionClosed(object sender, WampSessionEventArgs e)
 		{
 			if (OnSessionClosed != null)
-			    OnSessionClosed(sessionID);
+			    OnSessionClosed(e.SessionId);
 			
-			if (SessionNames.ContainsKey(sessionID))
-				SessionNames.Remove(sessionID);
+			if (SessionNames.ContainsKey(e.SessionId))
+				SessionNames.Remove(e.SessionId);
 		}
 		
 		public string Dump()

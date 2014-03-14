@@ -42,6 +42,9 @@ comes with
  * registers itself on element.AttributeChanged so it can reflect those changes on the __RemoteContext__
 * OnDelete(element)
  * calls __element.UnregisterEvents()__
+ 
+### DynamicRPC.cs
+* represents a dynamic RPC for being able to be registered at the WampHost
 
 ###/web
 the web/js part of posh that 
