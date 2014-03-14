@@ -1,9 +1,9 @@
 #Posh
-misusing the browser as your windowing/drawing layer
+misusing the browser as your windowing/interaction/drawing layer using SVG graphics and the WAMP protocol
 
 requires:
 * https://github.com/vvvv/WampSharp branch: develop
-* https://github.com/vvvv/SVG branch: textEvents
+* https://github.com/vvvv/SVG
 
 to be cloned next to \Posh
 
