@@ -93,7 +93,7 @@ namespace PoshDemo
 			ViewRoot = new SvgDocument();
 
 			//hand the svg document a custom idmanager that talks to the WampServer
-			var manager = new SvgIdManager(ViewRoot, FPoshServer.EventCaller, FPoshServer.RemoteContext);
+			var manager = new SvgIdManager(ViewRoot, FPoshServer.SvgEventCaller, FPoshServer.RemoteContext);
             ViewRoot.OverwriteIdManager(manager);
                        
 			//fill the svg document

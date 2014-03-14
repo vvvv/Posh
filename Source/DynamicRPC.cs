@@ -5,6 +5,20 @@ using WampSharp.Rpc.Server;
 
 namespace Posh
 {
+	public class CallInvokedArgs
+	{
+		public CallInvokedArgs(string rpcID)
+		{
+			RpcID = rpcID;
+		}
+		
+		public string RpcID
+		{
+			get;
+			private set;
+		}
+	}
+	
 	/// <summary>
 	/// An implementation of <see cref="IWampRpcMetadata"/> and <see cref="IWampRpcMethod"/> in order to allow registration of dynamic RPCs.
 	/// </summary>
@@ -14,11 +28,23 @@ namespace Posh
 		private string mUri;
 		private Func<object[], object> mMethod;
 		private Type[] mParameterTypes;
+		public static event EventHandler<CallInvokedArgs> CallInvoked;
+		
+		private void OnCallInvoked()
+		{
+			var callInvoked = CallInvoked;
+			if(callInvoked != null)
+			{
+				CallInvoked(this, new CallInvokedArgs(mRPCID));
+			}
+		}
 		
 		public DynamicRPC(string rpcID)
 		{
 			mRPCID = rpcID;
 		}
+		
+		private void DefaultCallInvoked(string rpcID){}
 		
 		public IEnumerable<IWampRpcMethod> GetServiceMethods()
 		{
@@ -128,7 +154,9 @@ namespace Posh
 		
 		public object Invoke(object[] parameters)
 		{
-			return mMethod(parameters);
+			var result = mMethod(parameters);
+			OnCallInvoked();
+			return result;
 		}
 	}
 }

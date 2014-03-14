@@ -41,7 +41,7 @@ namespace Posh
 	{
 		private bool FDisposed = false;
 		
-		public ISvgEventCaller EventCaller;
+		public PoshSvgEventCaller SvgEventCaller;
 		
 		public Dictionary<string, string> SessionNames = new Dictionary<string, string>();
 		public RemoteContext RemoteContext = new RemoteContext();
@@ -80,13 +80,15 @@ namespace Posh
 			
 			FWampHost.SessionCreated += SessionCreated;
 			FWampHost.SessionClosed += SessionClosed;
-			FWampHost.Listener.CallInvoked += PublishAll;
+			//FWampHost.Listener.CallInvoked += PublishAll;
+			
+			
+			
+			//create event caller for svg            
+			SvgEventCaller = new PoshSvgEventCaller(FWampHost);
 			
 			//publish all stuff aufter each call from remote
 			AutoPublishAllAfterRemoteCall = true;
-			
-			//create event caller for svg            
-			EventCaller = new SvgEventCaller(FWampHost);
 		}
 
 		private bool FAutoPublishAfterRemoteCall;
@@ -103,11 +105,11 @@ namespace Posh
 					FAutoPublishAfterRemoteCall = value;
 					if(FAutoPublishAfterRemoteCall)
 					{
-						FWampHost.Listener.CallInvoked += PublishAll;
+						SvgEventCaller.CallInvoked += PublishAll;
 					}
 					else
 					{
-						FWampHost.Listener.CallInvoked -= PublishAll;
+						SvgEventCaller.CallInvoked -= PublishAll;
 					}
 				}
 			}
@@ -215,7 +217,7 @@ namespace Posh
 		}
 		
 		//publish all
-		public void PublishAll(string sessionID, string rpcID)
+		public void PublishAll(object sender, CallInvokedArgs e)
 		{
 			PublishAdd();
 			PublishUpdate();
@@ -294,14 +296,26 @@ namespace Posh
 	#endregion
 	
 	#region SvgEventCaller
-	public class SvgEventCaller: ISvgEventCaller
+	public class PoshSvgEventCaller: ISvgEventCaller
 	{
 		private DefaultWampHost FWampHost;
 		private Dictionary<string, DynamicRPC> FDynamicRPCs = new Dictionary<string, DynamicRPC>();
 		
-		public SvgEventCaller(DefaultWampHost host)
+		public PoshSvgEventCaller(DefaultWampHost host)
 		{
 			FWampHost = host;
+		}
+		
+		public event EventHandler<CallInvokedArgs> CallInvoked
+		{
+			add
+			{
+				DynamicRPC.CallInvoked += value;
+			}
+			remove
+			{
+				DynamicRPC.CallInvoked -= value;
+			}
 		}
 		
 		private void RegisterAction(string rpcID, Action<DynamicRPC> register)
