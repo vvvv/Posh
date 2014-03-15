@@ -26,7 +26,7 @@ namespace PoshDemo
 			rect.Stroke = new SvgColourServer(Color.Transparent);
 		}
 	}
-	
+
 	//per session stuff
 	public class SessionParameters
 	{
@@ -161,6 +161,27 @@ namespace PoshDemo
 		}
 
 		#region event-delegation
+
+        private MouseEventArgs ConvertMouseArg(MouseArg arg)
+        {
+            var button = MouseButtons.None;
+            switch (arg.Button)
+	        {
+                case 1:
+                    button = MouseButtons.Left;
+                    break;
+                case 2:
+                    button = MouseButtons.Middle;
+                    break;
+                case 3:
+                    button = MouseButtons.Right;
+                    break;
+		        default:
+                    break;
+	        }
+            return new MouseEventArgs(button, arg.ClickCount, (int)arg.x, (int)arg.y, 0);
+        }
+
 		//selection rect or new rect
 		void background_MouseDown(object sender, MouseArg e)
 		{
@@ -180,27 +201,27 @@ namespace PoshDemo
 				newRect.MouseUp += rect_MouseUp;
 				FRectGroup.Children.Add(newRect);
 				FRects.Add(newRect);
-				handler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0]);
+				handler = new RectangleSizeHandler(newRect, e.SessionID, FRectGroup.Transforms[0].Matrix);
 			}
 			else
 			{
 				handler = new MoveAllRectsHandler(FRectGroup, e.SessionID);
 			}
-			
-			FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, e);
+
+            FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, ConvertMouseArg(e));
 			
 		}
 
 		//move on background
 		void background_MouseMove(object sender, MouseArg e)
 		{
-			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
+            HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, ConvertMouseArg(e)));
 		}
 
 		//click in background
 		void background_MouseUp(object sender, MouseArg e)
 		{
-			HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, e));
+            HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, ConvertMouseArg(e)));
 		}
 
 		//click rect
@@ -213,8 +234,8 @@ namespace PoshDemo
 			if (e.Button == 1) //drag
 			{
 				handler = new SelectedRectsMoveHandler(FSessionParams[e.SessionID].SelectedRects, sender as SvgRectangle, e.SessionID);
-				
-				FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, e);
+
+                FSessionParams[e.SessionID].MouseHandler = handler.MouseDown(sender, ConvertMouseArg(e));
 			}
 			else //remove
 			{
@@ -227,13 +248,13 @@ namespace PoshDemo
 		//move on rect
 		void rect_MouseMove(object sender, MouseArg e)
 		{
-			HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, e));
+            HandlerDispatch(e.SessionID, handler => handler.MouseMove(sender, ConvertMouseArg(e)));
 		}
 		
 		//rect mouse up
 		void rect_MouseUp(object sender, MouseArg e)
 		{
-			HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, e));
+            HandlerDispatch(e.SessionID, handler => handler.MouseUp(sender, ConvertMouseArg(e)));
 		}
 		
 		//rect mouse up
@@ -305,23 +326,23 @@ namespace PoshDemo
 		SvgText FLabel;
 		
 		public SelectionRectangleHandler(List<SvgRectangle> quads, List<SvgRectangle> selected, SvgTransform rectTransform, SvgText label, SvgRectangle selectionRect, string sessionID)
-			: base(selectionRect, sessionID, null)
+			: base(selectionRect, sessionID)
 		{
 			FQuads = quads;
 			FSelectedQuads = selected;
 			FRectTransform = rectTransform;
 			FLabel = label;
 		}
-		
-		public override IMouseEventHandler MouseDown(object sender, MouseArg arg)
+
+        public override IMouseEventHandler MouseDown(object sender, MouseEventArgs arg)
 		{
 			foreach (var rect in FSelectedQuads) 
 			{
 				rect.Unselect();
 			}
 			FSelectedQuads.Clear();
-			FLabel.X = arg.x;
-			FLabel.Y = arg.y;
+			FLabel.X = arg.X;
+			FLabel.Y = arg.Y;
 			return base.MouseDown(sender, arg);
 		}
 		
@@ -331,10 +352,10 @@ namespace PoshDemo
 			Instance.SetRectangle(selection);
 			FLastSelection = selection;
 		}
-		
-		public override IMouseEventHandler MouseUp(object sender, MouseArg arg)
+
+        public override IMouseEventHandler MouseUp(object sender, MouseEventArgs arg)
 		{
-			FLastSelection.Location = TransformPointInverse(FRectTransform.Matrix, FLastSelection.Location);
+			FLastSelection.Location = FRectTransform.Matrix.TransformPoint(FLastSelection.Location);
 			foreach (var rect in FQuads) 
 			{
 				if(FLastSelection.Contains(rect.GetRectangle()))
@@ -352,7 +373,7 @@ namespace PoshDemo
 	//new rectangle created
 	public class RectangleSizeHandler : MouseHandlerBase<SvgRectangle>
 	{
-		public RectangleSizeHandler(SvgRectangle rect, string sessionID, SvgTransform groupTransform)
+		public RectangleSizeHandler(SvgRectangle rect, string sessionID, Matrix groupTransform)
 			: base(rect, sessionID, groupTransform)
 		{
 		}
@@ -367,7 +388,7 @@ namespace PoshDemo
 	public class MoveAllRectsHandler : MouseHandlerBase<SvgGroup>
 	{
 		public MoveAllRectsHandler(SvgGroup g, string sessionID)
-			: base(g, sessionID, null)
+			: base(g, sessionID)
 		{
 		}
 		
@@ -385,12 +406,12 @@ namespace PoshDemo
 	{
 		List<SvgRectangle> FSelectedQuads;
 		public SelectedRectsMoveHandler(List<SvgRectangle> selected, SvgRectangle rect, string sessionID)
-			: base(rect, sessionID, null)
+			: base(rect, sessionID)
 		{
 			FSelectedQuads = selected;
 		}
-		
-		public override IMouseEventHandler MouseDown(object sender, MouseArg arg)
+
+        public override IMouseEventHandler MouseDown(object sender, MouseEventArgs arg)
 		{
 			
 			if(!FSelectedQuads.Contains(Instance))
@@ -415,105 +436,5 @@ namespace PoshDemo
 			}
 		}
 	}
-	
-	/// <summary>
-	/// Mouse event handler interface
-	/// </summary>
-	public interface IMouseEventHandler
-	{
-		IMouseEventHandler MouseDown(object sender, MouseArg arg);
-		IMouseEventHandler MouseMove(object sender, MouseArg arg);
-		IMouseEventHandler MouseUp(object sender, MouseArg arg);
-		string SessionID { get; }
-	}
-	
-
-	/// <summary>
-	/// Does basic mouse event hadling
-	/// </summary>
-	public abstract class MouseHandlerBase<TView> : IMouseEventHandler where TView : SvgElement
-	{
-		bool pressed;
-		int Button;
-		PointF StartPoint;
-		PointF LastPoint;
-		int DragCallCounter = 0;
-		protected TView Instance;
-		protected SvgTransform MouseTransform;
-		public string SessionID { get; protected set; }
-
-		public MouseHandlerBase(TView view, string sessionID, SvgTransform mouseTransform)
-		{
-			Instance = view;
-			SessionID = sessionID;
-			MouseTransform = mouseTransform == null ? new SvgTranslate(0, 0) : mouseTransform;
-		}
-		
-		protected PointF TransformPointInverse(Matrix t, PointF p)
-		{
-			var pts = new PointF[] { p };
-			t.Invert();
-			t.TransformPoints(pts);
-			return pts[0];
-		}
-
-		public virtual IMouseEventHandler MouseDown(object sender, MouseArg arg)
-		{
-			pressed = true;
-			Button = arg.Button;
-			StartPoint = TransformPointInverse(MouseTransform.Matrix, new PointF(arg.x, arg.y));
-			LastPoint = StartPoint;
-			return this;
-		}
-
-		public virtual IMouseEventHandler MouseMove(object sender, MouseArg arg)
-		{
-			if(pressed)
-			{
-				var point = TransformPointInverse(MouseTransform.Matrix, new PointF(arg.x, arg.y));
-				MouseDrag(sender, point, new PointF(point.X - LastPoint.X, point.Y - LastPoint.Y), DragCallCounter);
-
-				var rect = new RectangleF(StartPoint, new SizeF(point.X - StartPoint.X, point.Y - StartPoint.Y));
-				var x = rect.X;
-				var y = rect.Y;
-				var w = Math.Abs(rect.Width);
-				var h = Math.Abs(rect.Height);
-
-				if (rect.Width < 0)
-					x = x + rect.Width;
-				if (rect.Height < 0)
-					y = y + rect.Height;
-
-				MouseSelection(sender, new RectangleF(x, y, w, h));
-				LastPoint = point;
-				DragCallCounter++;
-			}
-
-			return this;
-		}
-
-		public virtual void MouseDrag(object sender, PointF arg, PointF delta, int dragCall)
-		{
-
-		}
-
-		public virtual void MouseSelection(object sender, RectangleF selection)
-		{
-
-		}
-
-		public virtual void MouseClick(object sender, MouseArg arg)
-		{
-
-		}
-
-		public virtual IMouseEventHandler MouseUp(object sender, MouseArg arg)
-		{
-			pressed = false;
-			MouseClick(sender, arg);
-			return null;
-		}
-	}
-	
 	#endregion handlers
 }
