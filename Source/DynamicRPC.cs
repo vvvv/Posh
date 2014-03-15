@@ -150,7 +150,14 @@ namespace Posh
 		public Task<object> InvokeAsync(object[] parameters)
 		{
             var tcs = new TaskCompletionSource<object>();
-            tcs.SetResult(Invoke(parameters));
+            try
+            {
+                tcs.SetResult(Invoke(parameters));
+            }
+            catch (Exception e)
+            {
+                tcs.SetException(e);
+            }
 			return tcs.Task;
 		}
 		
