@@ -162,7 +162,7 @@ namespace PoshDemo
 
 		#region event-delegation
 
-        private MouseEventArgs ConvertMouseArg(MouseArg arg)
+        private VMouseEventArgs ConvertMouseArg(MouseArg arg)
         {
             var button = MouseButtons.None;
             switch (arg.Button)
@@ -179,7 +179,7 @@ namespace PoshDemo
 		        default:
                     break;
 	        }
-            return new MouseEventArgs(button, arg.ClickCount, (int)arg.x, (int)arg.y, 0);
+            return new VMouseEventArgs(button, arg.ClickCount, arg.x, arg.y, arg.AltKey, arg.ShiftKey, arg.CtrlKey, arg.SessionID);
         }
 
 		//selection rect or new rect
@@ -334,7 +334,7 @@ namespace PoshDemo
 			FLabel = label;
 		}
 
-        public override IMouseEventHandler MouseDown(object sender, MouseEventArgs arg)
+        public override IMouseEventHandler MouseDown(object sender, VMouseEventArgs arg)
 		{
 			foreach (var rect in FSelectedQuads) 
 			{
@@ -353,7 +353,7 @@ namespace PoshDemo
 			FLastSelection = selection;
 		}
 
-        public override IMouseEventHandler MouseUp(object sender, MouseEventArgs arg)
+        public override IMouseEventHandler MouseUp(object sender, VMouseEventArgs arg)
 		{
 			FLastSelection.Location = FRectTransform.Matrix.TransformPoint(FLastSelection.Location);
 			foreach (var rect in FQuads) 
@@ -411,7 +411,7 @@ namespace PoshDemo
 			FSelectedQuads = selected;
 		}
 
-        public override IMouseEventHandler MouseDown(object sender, MouseEventArgs arg)
+        public override IMouseEventHandler MouseDown(object sender, VMouseEventArgs arg)
 		{
 			
 			if(!FSelectedQuads.Contains(Instance))

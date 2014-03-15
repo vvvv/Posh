@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+
 using Posh;
 using PoshDemo;
 using Svg;
@@ -28,7 +29,86 @@ namespace PoshDemo
             t.TransformPoints(pts);
             return pts[0];
         }
-    }
+	}
+	
+	public class VBaseEventArgs
+	{
+		public string UserID { get; private set; } 
+		public VBaseEventArgs(string userID)
+		{
+			UserID = userID;
+		}
+	}
+	
+	public class VMouseEventArgs : VBaseEventArgs
+	{
+		public float X { get; private set; }
+		public float Y { get; private set; }
+		public MouseButtons Button { get; private set; }
+		public int Clicks { get; private set; }
+		public bool AltKey { get; private set; }
+		public bool ShiftKey { get; private set; }
+		public bool CtrlKey { get; private set; }
+		
+		
+		public VMouseEventArgs(
+			MouseButtons button,
+			int clicks,
+			float x,
+			float y,
+			bool altKey,
+			bool shiftKey,
+			bool ctrlKey,
+			string userID) : base(userID)
+		{
+			X = x;
+			Y = y;
+			Button = button;
+			Clicks = clicks;
+			AltKey = altKey;
+			ShiftKey = shiftKey;
+			CtrlKey = ctrlKey;
+		}
+	}
+	
+	public class VKeyEventArgs : VBaseEventArgs
+	{
+		public Keys KeyData { get; private set; }
+		public Keys KeyCode { get; private set; }
+		public int KeyValue { get; private set; }
+		public bool AltKey { get; private set; }
+		public bool ShiftKey { get; private set; }
+		public bool CtrlKey { get; private set; }
+		
+		public VKeyEventArgs(
+			Keys keyData,
+			Keys keyCode,
+			int keyValue,
+			bool altKey,
+			bool shiftKey,
+			bool ctrlKey,
+			string userID) : base(userID)
+		{
+			KeyData = keyData;
+			KeyCode = keyCode;
+			KeyValue = keyValue;
+			AltKey = altKey;
+			ShiftKey = shiftKey;
+			CtrlKey = ctrlKey;
+		}
+	}
+	
+	public class VKeyPressedEventArgs : VBaseEventArgs
+	{
+		public char KeyChar { get; private set; }
+		
+		public VKeyPressedEventArgs(
+			char keyChar,
+			string userID) : base(userID)
+		{
+			KeyChar = keyChar;
+		}
+	}
 	
 	
 	/// <summary>
@@ -37,9 +117,9 @@ namespace PoshDemo
 	public interface IMouseEventHandler
 	{
 		string UserID { get; }
-		IMouseEventHandler MouseDown(object sender, MouseEventArgs arg);
-		IMouseEventHandler MouseMove(object sender, MouseEventArgs arg);
-		IMouseEventHandler MouseUp(object sender, MouseEventArgs arg);
+		IMouseEventHandler MouseDown(object sender, VMouseEventArgs arg);
+		IMouseEventHandler MouseMove(object sender, VMouseEventArgs arg);
+		IMouseEventHandler MouseUp(object sender, VMouseEventArgs arg);
 	}
 
 	/// <summary>
@@ -48,9 +128,9 @@ namespace PoshDemo
 	public interface IKeyEventHandler
 	{
 		string UserID { get; }
-		IKeyEventHandler KeyDown(object sender, KeyEventArgs arg);
-		IKeyEventHandler KeyUp(object sender, KeyEventArgs arg);
-		IKeyEventHandler KeyPress(object sender, KeyPressEventArgs arg);
+		IKeyEventHandler KeyDown(object sender, VKeyEventArgs arg);
+		IKeyEventHandler KeyUp(object sender, VKeyEventArgs arg);
+		IKeyEventHandler KeyPress(object sender, VKeyPressedEventArgs arg);
 	}
 	
 	/// <summary>
@@ -85,7 +165,7 @@ namespace PoshDemo
 		{
 		}
 		
-		public virtual IMouseEventHandler MouseDown(object sender, MouseEventArgs arg)
+		public virtual IMouseEventHandler MouseDown(object sender, VMouseEventArgs arg)
 		{
 			pressed = true;
 			Button = arg.Button;
@@ -94,7 +174,7 @@ namespace PoshDemo
 			return this;
 		}
 		
-		public virtual IMouseEventHandler MouseMove(object sender, MouseEventArgs arg)
+		public virtual IMouseEventHandler MouseMove(object sender, VMouseEventArgs arg)
 		{
 			if(pressed)
 			{
@@ -130,12 +210,12 @@ namespace PoshDemo
 			
 		}
 		
-		public virtual void MouseClick(object sender, MouseEventArgs arg)
+		public virtual void MouseClick(object sender, VMouseEventArgs arg)
 		{
 			
 		}
 		
-		public virtual IMouseEventHandler MouseUp(object sender, MouseEventArgs arg)
+		public virtual IMouseEventHandler MouseUp(object sender, VMouseEventArgs arg)
 		{
 			pressed = false;
 			MouseClick(sender, arg);
@@ -164,22 +244,24 @@ namespace PoshDemo
 		protected bool FAnyKeyPressed;
 		protected int FPressedKeyValue;
 		protected Keys FPressedKeyCode;
-		public virtual IKeyEventHandler KeyDown(object sender, KeyEventArgs arg)
+		protected Keys FPressedKeyData;
+		public virtual IKeyEventHandler KeyDown(object sender, VKeyEventArgs arg)
 		{
+			FPressedKeyData = arg.KeyData;
 			FPressedKeyCode = arg.KeyCode;
 			FPressedKeyValue = arg.KeyValue;
 			FAnyKeyPressed = true;
 			return this;
 		}
 
-		public virtual IKeyEventHandler KeyUp(object sender, KeyEventArgs arg)
+		public virtual IKeyEventHandler KeyUp(object sender, VKeyEventArgs arg)
 		{
 			FAnyKeyPressed = false;
 			return null;
 		}
 
 		protected char FPressedKeyChar;
-		public virtual IKeyEventHandler KeyPress(object sender, KeyPressEventArgs arg)
+		public virtual IKeyEventHandler KeyPress(object sender, VKeyPressedEventArgs arg)
 		{
 			FPressedKeyChar = arg.KeyChar;
 			return this;
