@@ -147,9 +147,11 @@ namespace Posh
 			get {return mParameterTypes;}
 		}
 		
-		public System.Threading.Tasks.Task<object> InvokeAsync(object[] parameters)
+		public Task<object> InvokeAsync(object[] parameters)
 		{
-			return Task.Factory.StartNew(() => Invoke(parameters));
+            var tcs = new TaskCompletionSource<object>();
+            tcs.SetResult(Invoke(parameters));
+			return tcs.Task;
 		}
 		
 		public object Invoke(object[] parameters)
