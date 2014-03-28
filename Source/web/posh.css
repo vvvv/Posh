@@ -4,7 +4,7 @@ body{
 	-ms-touch-action: none !important; /* DISABLE DOUBLE-TAP-ZOOM */  
 }
 
-svg{
+.posh{
 	position: absolute;
 	top: 0;
 	left: 0;

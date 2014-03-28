@@ -262,7 +262,7 @@ function updateEvents(doc)
 		{ 
 			ws.call(call, mouseX(e), mouseY(e), e.which, 1, e.altKey, e.shiftKey, e.ctrlKey, sessionID);
 			mouseDownTarget = null;
-			log(call + ': ' + e.which);
+			//log(call + ': ' + e.which);
 		});
 		$(this).removeAttr('onmouseup');
 	});
@@ -327,8 +327,7 @@ function updateEvents(doc)
 			//show editor
 			$ed.css({left: $(this).offset().left, top: $(this).offset().top});
 			$ed.css('font-family', $(this).attr('font-family'));
-			var size = $(this).attr('font-size');
-			$ed.css('font-size', 12);
+			$ed.css('font-size', $(this).attr('font-size'));
 			var w, h;
 			if ($this.width() != 0)
 			{
@@ -363,7 +362,8 @@ function updateEvents(doc)
 
 function onAdd(topicUri, event) 
 {
-	//log(event);
+	log("add: ");
+	log(event);
 	var doc = $.parseXML(event);
 	var svgSnippet = $(doc);
 
@@ -409,10 +409,11 @@ function onAdd(topicUri, event)
 	stopTimer();
 }
 
-var $elementLookup = {};
+var elementLookup = {};
 function onUpdateAttribute(topicUri, event) 
 {
-	//log(event);
+	log("update attributes");
+	log(event);
 	startTimer();
 
 	var data = JSON.parse(event);
@@ -425,9 +426,13 @@ function onUpdateAttribute(topicUri, event)
 		
 		//get (cached) element
 		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
-		
-		//setting all attributes at once
-		$element.attr(update.attributes);
+		//setting all attributes at once does not preserve casing of attributes but svg needs that
+		//$element.attr(update.attributes);
+
+		//setting attributes one after the other
+		//using DOMElement.setAttribute() instead of jquery which ignores case of attributes
+		for (var name in update.attributes)
+			$element[0].setAttribute(name, update.attributes[name]);
 	}
 	
 	setLastChangeName(data.SessionName + ": update");
@@ -460,6 +465,7 @@ function onUpdateContent(topicUri, event)
 
 function onRemove(topicUri, event) 
 {
+	log("remove: ");
 	log(event);
 	startTimer();
 	var data = JSON.parse(event);
@@ -467,7 +473,7 @@ function onRemove(topicUri, event)
 	for (var i = 0; i < data.RemoveIDList.length; i++) 
 	{
 		var elementToRemove = document.getElementById(data.RemoveIDList[i]);
-		log(data.RemoveIDList[i]);
+		//log(data.RemoveIDList[i]);
 		$(elementToRemove).remove();
 	}
 	

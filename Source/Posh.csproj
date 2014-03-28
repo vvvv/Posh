@@ -87,7 +87,7 @@
     <None Include="web\ie.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="web\jquery-2.0.3.min.js">
+    <None Include="web\jquery-2.1.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="web\posh-helper.js">
