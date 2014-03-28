@@ -35,7 +35,7 @@ namespace Posh
 				if(string.IsNullOrWhiteSpace(element.ID))
 				{
 					if(element.Parent != null)
-						element.SetAndForceUniqueID(element.Parent.ID + "/" + IDGenerator.NewID, true, null);
+						element.SetAndForceUniqueID(element.Parent.ID + "_" + IDGenerator.NewID, true, null);
 					else
 						element.SetAndForceUniqueID(RandomString(16), true, null);
 				}
@@ -71,12 +71,12 @@ namespace Posh
 			if(e.NewChild is SvgVisualElement)
 			{
 				var newChild = e.NewChild;
-				if((!newChild.ID.StartsWith(parent.ID + "/") || parent is SvgDocument) && !(parent is SvgDefinitionList))
+				if((!newChild.ID.StartsWith(parent.ID + "_") || parent is SvgDocument) && !(parent is SvgDefinitionList))
 				{
 					newChild.ApplyRecursive( elem => 
 					                        {
-					                        	var oldID = elem.ID.Substring(elem.ID.LastIndexOf("/") + 1);
-					                        	elem.SetAndForceUniqueID(elem.Parent.ID + "/" + oldID);
+					                        	var oldID = elem.ID.Substring(elem.ID.LastIndexOf("_") + 1);
+					                        	elem.SetAndForceUniqueID(elem.Parent.ID + "_" + oldID);
 					                        	elem.RegisterEvents(FCaller);
 					                        });
 				}

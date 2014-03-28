@@ -317,7 +317,7 @@ function updateEvents(doc)
 			var $ed = $('#editor');
 			
 			//set call msg
-			var to = call.lastIndexOf("/");
+			var to = call.lastIndexOf("_");
 			editorTargetCall = call.substring(0, to) + "/onchange";
 
 			//save current value
@@ -382,7 +382,7 @@ function onAdd(topicUri, event)
 		else
 		{
 			//get parent id
-			var parentID = id.substring(0, id.lastIndexOf("/"));
+			var parentID = id.substring(0, id.lastIndexOf("_"));
 			var parent;
 			
 			//if parentID = "" append to root
