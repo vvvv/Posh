@@ -177,7 +177,7 @@ namespace Posh
 		#endregion destructor
 		
 		//publish json massage with updated attributes
-		void PublishUpdate()
+		public void PublishUpdate()
 		{
 			if(RemoteContext.HasAttributeUpdates())
 			{
@@ -187,7 +187,7 @@ namespace Posh
 		}
 		
 		//publish json massage with updated attributes
-		void PublishContent()
+		public void PublishContent()
 		{
 			if(RemoteContext.HasContentUpdates())
 			{

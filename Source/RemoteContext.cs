@@ -327,6 +327,5 @@ namespace Posh
 			ClearContentUpdates();
 			ClearRemove();
 		}
-		
 	}
 }
