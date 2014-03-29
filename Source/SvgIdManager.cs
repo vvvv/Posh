@@ -53,7 +53,7 @@ namespace Posh
 			{
 				var elem = sender as SvgElement;
 				var val = TypeDescriptor.GetConverter(e.Value).ConvertToString(null, CultureInfo.InvariantCulture, e.Value);
-				System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
+				//System.Diagnostics.Debug.WriteLine(elem.ID + " " + e.Attribute + " " + val);
 				RemoteContext.AddAttributeUpdate((sender as SvgElement).ID, e.Attribute, e.Value);
 			}
 		}

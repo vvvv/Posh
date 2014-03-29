@@ -275,8 +275,8 @@ namespace Posh
 				if(ExistsRemoveID(element.ID))
 					return;
 				
-				if (ExistsAddElement(element))
-					throw new Exception("Element cannot be in Add- and RemoveLists at the same time");
+//				if (ExistsAddElement(element))
+//					throw new Exception("Element cannot be in Add- and RemoveLists at the same time");
 				
 				RemoveIDList.Add(element.ID);
 			}
