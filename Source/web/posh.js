@@ -165,7 +165,7 @@ function showConfig()
 
 function hideConfig()
 {
-	var off = - $('#config').height() + 12;
+	var off = $('#config').height() - 12;
 	$('#config').css('transform', 'translateY(' + off + 'px)');
 }
 

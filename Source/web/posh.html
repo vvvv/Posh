@@ -24,12 +24,12 @@
 <div id="editor" contenteditable="true"></div>
 
 <div id="config" onselectstart="return false;" tabindex="0" onfocus="showConfig()">
+	<div id="lastChange">Last Change: none</div>
 	<div id="sessionID">Session ID: none</div>
 	<form onsubmit="return false;">
 	Name: <input id="sessionName" type="text" name="name" onkeyup="sessionNameKeyUp(event)">
 	<div id="upsdisp">Max updates/second: 30</div><input id="ups" type="range" min="1" max="60" value="30">
 	</form>
-	<div id="lastChange">Last Change: none</div>
 </div>
 
 </body>
