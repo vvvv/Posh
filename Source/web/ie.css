@@ -1,1 +1,7 @@
 path { stroke-width: 0.05; }
+.pathsel
+{	
+	fill: #959595;
+	stroke: #959595;
+	stroke-width: 0.05;
+}
