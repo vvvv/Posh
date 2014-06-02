@@ -1,6 +1,10 @@
 #Posh
-misusing the browser as your windowing/interaction/drawing layer using SVG graphics and the WAMP protocol
+misusing the browser as your windowing/interaction/drawing layer by streaming [SVG] (http://en.wikipedia.org/wiki/Scalable_Vector_Graphics) graphics via the [WAMP] (http://wamp.ws/) v1 protocol.
 
+##Applications using Posh
+* [Timeliner] (https://github.com/vvvv/Timeliner)
+
+##Code Overview
 requires:
 * https://github.com/vvvv/WampSharp branch: develop
 * https://github.com/vvvv/SVG
@@ -9,9 +13,6 @@ to be cloned next to \Posh
 
 comes with 
 [autobahn](http://autobahn.ws/js/) and [jQuery](http://jquery.com)
-
-
-##Code Overview
 
 ### WebServer.cs
 * is an HTTP server
