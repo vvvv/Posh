@@ -205,7 +205,7 @@ namespace Posh
 					responseString = sr.ReadToEnd();
 			}
 			//request for root returns listing of all files
-			else if (request.RawUrl == "/root")
+			else if (request.RawUrl == "/")
 			{
 				var stringWriter = new StringWriter();
 				// Put HtmlTextWriter in using block because it needs to call Dispose.
@@ -220,18 +220,21 @@ namespace Posh
 					writer.RenderEndTag(); 
 					writer.RenderEndTag(); 
 					
-					writer.RenderBeginTag(HtmlTextWriterTag.Body); 		
-					
 					writer.AddAttribute(HtmlTextWriterAttribute.Id, "rootlist");
+					writer.RenderBeginTag(HtmlTextWriterTag.Body); 		
+					writer.Write("Available&nbsp;Timelines");
+					writer.WriteBreak();
+					
 					writer.RenderBeginTag(HtmlTextWriterTag.Div);
 				    // Loop over some strings.
-				    foreach (var file in Directory.EnumerateFiles(TerminalPath, "*.xml"))
+//				    foreach (var file in Directory.EnumerateFiles(TerminalPath, "*.xml"))
+				    foreach (var url in URLPort.Keys)
 				    {
-				    	var f = Path.GetFileNameWithoutExtension(file);
+//				    	var f = Path.GetFileNameWithoutExtension(file);
 						writer.RenderBeginTag(HtmlTextWriterTag.P);
-						writer.AddAttribute(HtmlTextWriterAttribute.Href, "/open/" + f);
+						writer.AddAttribute(HtmlTextWriterAttribute.Href, url);
 						writer.RenderBeginTag(HtmlTextWriterTag.A); 
-						writer.Write(f);
+						writer.Write(url);
 						writer.RenderEndTag(); 
 						writer.RenderEndTag();						
 				    }
