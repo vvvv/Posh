@@ -63,13 +63,14 @@ $(document).ready(function()
 			
 	$(document).on('keydown', function(e) 
 	{
-		//e.originalEvent.preventDefault();
+		//prevent browser shortcuts
+		if (e.ctrlKey)
+			e.originalEvent.preventDefault();
 		ws.call('keydown', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
 	$(document).on('keyup', function(e) 
 	{
-		//e.originalEvent.preventDefault();
 		ws.call('keyup', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
@@ -89,7 +90,7 @@ $(document).ready(function()
 		if (overTargetCall)
 		{
 			ws.call(overTargetCall, e.originalEvent.wheelDelta, sessionID);
-			//prevent page fom scrolling
+			//prevent page from scrolling
 			return false;
 		}
 		
@@ -315,9 +316,12 @@ function updateEvents(doc)
 				return true;
 			var $this = $(this);
 			var $ed = $('#editor');
+			//if editor is currently visible just exit so that it first blurs
+			if ($ed.is(":visible"))
+				return true;
 			
 			//set call msg
-			var to = call.lastIndexOf("_");
+			var to = call.lastIndexOf("/");
 			editorTargetCall = call.substring(0, to) + "/onchange";
 
 			//save current value
@@ -326,8 +330,9 @@ function updateEvents(doc)
 
 			//show editor
 			$ed.css({left: $(this).offset().left, top: $(this).offset().top});
-			$ed.css('font-family', $(this).attr('font-family'));
-			$ed.css('font-size', $(this).attr('font-size'));
+			$ed.css('font-family', $(this).css('font-family'));
+			$ed.css('font-size', $(this).css('font-size'));
+			$ed.css('color', $(this).css('fill'));
 			var w, h;
 			if ($this.width() != 0)
 			{
