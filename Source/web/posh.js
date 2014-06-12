@@ -66,18 +66,24 @@ $(document).ready(function()
 		//prevent browser shortcuts
 		if (e.ctrlKey)
 			e.originalEvent.preventDefault();
+		if ($('#editor').is(":visible"))
+			return true;
 		ws.call('keydown', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
 	$(document).on('keyup', function(e) 
 	{
+		if ($('#editor').is(":visible"))
+			return true;
 		ws.call('keyup', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
 	//vvvv hosted IE does not send keydown/up, only keypress?
 	$(document).on('keypress', function(e) 
 	{
-		//e.originalEvent.preventDefault();
+		if ($('#editor').is(":visible"))
+			return true;	
+					
 		ws.call('keypress', e.ctrlKey, e.shiftKey, e.altKey, String.fromCharCode(e.which));
 		
 		//don't scroll the page down on space
@@ -107,23 +113,25 @@ $(document).ready(function()
 	{  
 		if (editorTargetCall)
 		{
+			var $ed = $('#editor');
 			if (e.keyCode == 13)
 			{
 				//execute
-				$('#editor').blur();
+				$ed.blur();
 			}
 			else if (e.keyCode == 27)
 			{
 				//just hide the editor
-				$('#editor').hide();
+				$ed.html($ed.data('before'));
+				$ed.hide();
 			}
 			
 			//get cursor position
-			var c = $('#editor').caret();
+			var c = $ed.caret();
 			//adapt width of editor
-			$('#editor').width($('#editor').textWidth() + 20);
+			$ed.width($ed.textWidth() + 20);
 			//set cursor back in place
-			$('#editor').caret(c);
+			$ed.caret(c);
 		}
 	});
 	
