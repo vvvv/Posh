@@ -438,12 +438,13 @@ function onUpdateAttribute(topicUri, event)
 		update = data.Updates[i];
 		
 		//get (cached) element
-		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
+		$element = elementLookup[update.id] || (elementLookup[update.id] = $(document.getElementById(update.id)));
 		//setting all attributes at once does not preserve casing of attributes but svg needs that
 		//$element.attr(update.attributes);
 
 		//setting attributes one after the other
 		//using DOMElement.setAttribute() instead of jquery which ignores case of attributes
+		if($element[0] !== undefined)
 		for (var name in update.attributes)
 			$element[0].setAttribute(name, update.attributes[name]);
 	}
@@ -466,7 +467,7 @@ function onUpdateContent(topicUri, event)
 		update = data.Updates[i];
 		
 		//get (cached) element
-		$element = $elementLookup[update.id] || ($elementLookup[update.id] = $(document.getElementById(update.id)));
+		$element = elementLookup[update.id] || (elementLookup[update.id] = $(document.getElementById(update.id)));
 		
 		//setting elements text content
 		$element.text(update.content);
@@ -486,6 +487,8 @@ function onRemove(topicUri, event)
 	for (var i = 0; i < data.RemoveIDList.length; i++) 
 	{
 		var elementToRemove = document.getElementById(data.RemoveIDList[i]);
+		delete elementLookup[data.RemoveIDList[i]];
+
 		//log(data.RemoveIDList[i]);
 		$(elementToRemove).remove();
 	}
