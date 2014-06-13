@@ -20,6 +20,8 @@ namespace Posh
 			FCaller = caller;
 			RemoteContext = remoteContext;
 			doc.ChildAdded += element_ChildAdded;
+			doc.AttributeChanged += element_AttributeChanged;
+			doc.ContentChanged += element_ContentChanged;
 		}
 		
 		public override bool AddAndForceUniqueID(SvgElement element, SvgElement sibling, bool autoForceUniqueID, Action<SvgElement, string, string> logElementOldIDNewID)
