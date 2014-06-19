@@ -223,12 +223,11 @@ function dumpResult(data)
 	}
 	svg.appendChild(parseSVG(data));
 
-
 	updateEvents(document);
 	
 	//reset the lookup after every dump
 	//specifically necessary for startup
-	$elementLookup = {};
+	elementLookup = {};
 }
 
 function updateEvents(doc)
