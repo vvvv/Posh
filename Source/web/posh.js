@@ -52,6 +52,8 @@ window.onload = function()
 		
 		$('#config').css('color', 'red');
 	});
+	
+	window.onscroll = moveFixed;
 }
 
 var editorTargetCall, overTargetCall;
