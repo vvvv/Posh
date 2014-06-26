@@ -69,6 +69,39 @@ function mouseY(e)
 {//console.log($('#svg').offset().top);
 	return e.pageY;// - $('#svg').offset().top;
 }
+
+//via http://www.howtocreate.co.uk/tutorials/javascript/browserwindow
+function getScrollXY() 
+{
+    var scrOfX = 0, scrOfY = 0;
+    if( typeof( window.pageYOffset ) == 'number' ) 
+    {
+        //Netscape compliant
+        scrOfY = window.pageYOffset;
+        scrOfX = window.pageXOffset;
+    } else if( document.body && ( document.body.scrollLeft || document.body.scrollTop ) )
+    {
+        //DOM compliant
+        scrOfY = document.body.scrollTop;
+        scrOfX = document.body.scrollLeft;
+    } else if( document.documentElement && ( document.documentElement.scrollLeft || document.documentElement.scrollTop ) ) {
+        //IE6 standards compliant mode
+        scrOfY = document.documentElement.scrollTop;
+        scrOfX = document.documentElement.scrollLeft;
+    }
+    return [ scrOfX, scrOfY ];
+}
+      
+//via http://dahlström.net/svg/examples/FixedPositionGroupInScript.svg
+function moveFixed(evt)
+{
+    var scrollpos = getScrollXY();
+    $('.fixed', $(document)).children().each(function()
+	{
+        var tfm = this.transform.baseVal.getItem(0);
+        tfm.setTranslate(scrollpos[0], scrollpos[1]);
+    });
+}
 	
 function parseSVG(s) 
 {
@@ -107,5 +140,5 @@ function stopTimer()
 
 function log(msg)
 {
-	//console.log(msg);
+	console.log(msg);
 }
