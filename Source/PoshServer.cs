@@ -86,9 +86,16 @@ namespace Posh
 			
 			//create event caller for svg            
 			SvgEventCaller = new PoshSvgEventCaller(FWampHost);
+			SvgEventCaller.CallInvoked += SvgEventCaller_CallInvoked;
 			
 			//publish all stuff aufter each call from remote
 			AutoPublishAllAfterRemoteCall = true;
+		}
+
+		string LastCallSessionID = "";
+		void SvgEventCaller_CallInvoked(object sender, CallInvokedArgs e)
+		{
+			LastCallSessionID = e.SessionID;
 		}
 
 		private bool FAutoPublishAfterRemoteCall;
@@ -219,6 +226,14 @@ namespace Posh
 		//publish all
 		public void PublishAll(object sender, CallInvokedArgs e)
 		{
+			var name = LastCallSessionID;
+			
+			//lookup name
+			if(SessionNames.ContainsKey(name))
+			   name = SessionNames[name];
+			
+			RemoteContext.SetSessionID(name);
+			
 			PublishAdd();
 			PublishUpdate();
 			PublishContent();

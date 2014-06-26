@@ -60,7 +60,7 @@ namespace Posh
 	public class RemoteContext
 	{
 		#region update
-		public string SessionName;
+		public string SessionName = "default";
 		public List<AttributeUpdate> Updates = new List<AttributeUpdate>();
 		private Dictionary<string, Dictionary<string, object>> FUpdates = new Dictionary<string, Dictionary<string, object>>();
 		
@@ -326,6 +326,11 @@ namespace Posh
 			ClearAttributeUpdates();
 			ClearContentUpdates();
 			ClearRemove();
+		}
+		
+		public void SetSessionID(string sessionID)
+		{
+			SessionName = sessionID;
 		}
 	}
 }

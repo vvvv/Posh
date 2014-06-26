@@ -1,18 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using WampSharp.Core.Contracts.V1;
 using WampSharp.Rpc.Server;
 
 namespace Posh
 {
 	public class CallInvokedArgs
 	{
-		public CallInvokedArgs(string rpcID)
+		public CallInvokedArgs(string rpcID, string sessionID)
 		{
 			RpcID = rpcID;
+			SessionID = sessionID;
 		}
 		
 		public string RpcID
+		{
+			get;
+			private set;
+		}
+		
+		public string SessionID
 		{
 			get;
 			private set;
@@ -30,12 +39,12 @@ namespace Posh
 		private Type[] mParameterTypes;
 		public static event EventHandler<CallInvokedArgs> CallInvoked;
 		
-		private void OnCallInvoked()
+		private void OnCallInvoked(string sessionID)
 		{
 			var callInvoked = CallInvoked;
 			if(callInvoked != null)
 			{
-				CallInvoked(this, new CallInvokedArgs(mRPCID));
+				CallInvoked(this, new CallInvokedArgs(mRPCID, sessionID));
 			}
 		}
 		
@@ -147,12 +156,12 @@ namespace Posh
 			get {return mParameterTypes;}
 		}
 		
-		public Task<object> InvokeAsync(object[] parameters)
+		public Task<object> InvokeAsync(IWampClient client, object[] parameters)
 		{
             var tcs = new TaskCompletionSource<object>();
             try
             {
-                tcs.SetResult(Invoke(parameters));
+                tcs.SetResult(Invoke(client, parameters));
             }
             catch (Exception e)
             {
@@ -161,10 +170,10 @@ namespace Posh
 			return tcs.Task;
 		}
 		
-		public object Invoke(object[] parameters)
+		public object Invoke(IWampClient client, object[] parameters)
 		{
 			var result = mMethod(parameters);
-			OnCallInvoked();
+			OnCallInvoked(client.SessionId);
 			return result;
 		}
 	}

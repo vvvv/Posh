@@ -447,8 +447,8 @@ function onUpdateAttribute(topicUri, event)
 		for (var name in update.attributes)
 			$element[0].setAttribute(name, update.attributes[name]);
 	}
-	
-	setLastChangeName(data.SessionName + ": update");
+	if(data.SessionName !== undefined)
+		setLastChangeName(data.SessionName + ": update");
 	stopTimer();
 }
 
@@ -472,7 +472,9 @@ function onUpdateContent(topicUri, event)
 		$element.text(update.content);
 	}
 	
-	setLastChangeName(data.SessionName + ": update");
+	if(data.SessionName !== undefined)
+		setLastChangeName(data.SessionName + ": update");
+		
 	stopTimer();
 }
 
