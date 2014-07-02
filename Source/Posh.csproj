@@ -64,10 +64,10 @@
       <HintPath>..\..\Timeliner\packages\VVVV.Utils.32.1.0\lib\net40\VVVV.Utils.dll</HintPath>
     </Reference>
     <Reference Include="WampSharp">
-      <HintPath>..\..\Timeliner\Dependencies\WampSharp.dll</HintPath>
+      <HintPath>..\Dependencies\WampSharp.dll</HintPath>
     </Reference>
     <Reference Include="WampSharp.Default">
-      <HintPath>..\..\Timeliner\Dependencies\WampSharp.Default.dll</HintPath>
+      <HintPath>..\Dependencies\WampSharp.Default.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
