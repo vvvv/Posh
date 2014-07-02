@@ -70,14 +70,14 @@ $(document).ready(function()
 			e.originalEvent.preventDefault();
 		if ($('#editor').is(":visible"))
 			return true;
-		ws.call('keydown', e.ctrlKey, e.shiftKey, e.altKey, e.which);
+		ws.call('keyDown', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
 	$(document).on('keyup', function(e) 
 	{
 		if ($('#editor').is(":visible"))
 			return true;
-		ws.call('keyup', e.ctrlKey, e.shiftKey, e.altKey, e.which);
+		ws.call('keyUp', e.ctrlKey, e.shiftKey, e.altKey, e.which);
 	});
 	
 	//vvvv hosted IE does not send keydown/up, only keypress?
@@ -86,7 +86,7 @@ $(document).ready(function()
 		if ($('#editor').is(":visible"))
 			return true;	
 					
-		ws.call('keypress', e.ctrlKey, e.shiftKey, e.altKey, String.fromCharCode(e.which));
+		ws.call('keyPress', e.ctrlKey, e.shiftKey, e.altKey, String.fromCharCode(e.which));
 		
 		//don't scroll the page down on space
 		if (e.keyCode == 32)
@@ -487,7 +487,7 @@ function onRemove(topicUri, event)
 	startTimer();
 	var data = JSON.parse(event);
 	
-	$('#svg_Overlays_hack').attr('visibility', 'true');
+	//$('#svg_Overlays_hack').attr('visibility', 'true');
 	for (var i = 0; i < data.RemoveIDList.length; i++) 
 	{
 		var elementToRemove = document.getElementById(data.RemoveIDList[i]);
@@ -496,7 +496,7 @@ function onRemove(topicUri, event)
 		//log(data.RemoveIDList[i]);
 		$(elementToRemove).remove();
 	}
-	$('#svg_Overlays_hack').attr('visibility', 'hidden');
+	//$('#svg_Overlays_hack').attr('visibility', 'hidden');
 	
 	setLastChangeName(data.SessionName + ": remove");
 	stopTimer();
