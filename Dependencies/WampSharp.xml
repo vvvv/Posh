@@ -1,0 +1,2230 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WampSharp</name>
+    </assembly>
+    <members>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampCraClient">
+            <summary>
+            Interface to data regarding a client that is authenticated (or being authenticated).
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Contracts.V1.IWampCraClient.CraAuthenticator">
+            <summary>
+            Interface to data regarding a client that is authenticated (or being authenticated).
+            </summary>
+        </member>
+        <member name="T:WampSharp.Cra.MockWampCraProcedures">
+            <summary>
+            Mocked IWampCraProcedures for use in registering with the RpcMetadataCatalog.
+            </summary>
+            <seealso cref="T:WampSharp.Cra.IWampCraProcedures"/>
+        </member>
+        <member name="T:WampSharp.Cra.IWampCraProcedures">
+            <summary>
+            Contract for v1 WAMP-CRA RPC Calls.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Cra.IWampCraProcedures.AuthReq(System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            RPC endpoint for clients to initiate the authentication handshake.
+            </summary>
+            <param name="authKey">Authentication key, such as user name or application name.</param>
+            <param name="extra">Extra data for salting the secret. Possible key values 'salt' (required,
+            otherwise the secret is unsalted), 'iterations' (1000 default), and/or 'keylen' (32 default).</param>
+            <returns>
+            Authentication challenge. The client will need to create an authentication signature from
+            this. The type WampCraChallenge can be deserialized from this.
+            </returns>        
+        </member>
+        <member name="M:WampSharp.Cra.IWampCraProcedures.Auth(System.String)">
+            <summary>
+            RPC endpoint for clients to actually authenticate after requesting authentication and
+            computing a signature from the authentication challenge.
+            </summary>
+            <param name="signature">The signature.</param>
+            <returns>
+            A set of permissions the client is granted when authentication was successful.
+            </returns>        
+        </member>
+        <member name="T:WampSharp.Cra.WampCraHelpers">
+            <summary>
+            WAMP-CRA Authentication Helper methods.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraHelpers.DeriveKey(System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Computes a derived cryptographic key from a password according to PBKDF2
+            http://en.wikipedia.org/wiki/PBKDF2. The function will only return a derived key
+            if at least 'salt' is present in the 'extra' dictionary. The complete set of
+            attributes that can be set in 'extra': 
+               salt: The salt value to be used.
+               iterations: Number of iterations of derivation algorithm to run. 
+               keylen: Key length to derive.
+            </summary>
+            <param name="secret">The secret key from which to derive. </param>
+            <param name="extra"> Extra data for salting the secret. Possible key values 'salt'
+            (required, otherwise returns @secret), 'iterations' (1000 default),
+            and/or 'keylen' (32 default). </param>
+            <returns>A derived key (Base64 encoded) if a salt is provided in the extra parameter, or the
+            value of parameter 'secret' if not.</returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraHelpers.AuthSignature(System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Compute the authentication signature from an authentication challenge and a secret.
+            </summary>
+            <param name="authChallenge">The authentication challenge. </param>
+            <param name="authSecret">The authentication secret. </param>
+            <param name="authExtra">Extra data for salting the secret. Possible key values 'salt'
+            (required, otherwise uses @authSecret), 'iterations' (1000
+            default), and/or 'keylen' (32 default). </param>
+            <returns>The authentication signature.</returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraHelpers.PBKDF2Sha256GetBytes(System.Int32,System.Byte[],System.Byte[],System.Int32)">
+            <summary>
+            Implements PBKDF2 functionality by using a pseudorandom number generator based on
+            HMACSHA256.
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            Thrown when one or more arguments are outside
+            the required range.
+             </exception>
+            <param name="dklen">The number of pseudo-random key bytes to generate. </param>
+            <param name="password">The password used to derive the key. After use, the password
+            and salt should be cleared (with Array.Clear) </param>
+            <param name="salt">The key salt used to derive the key. After use, the password
+            and salt should be cleared (with Array.Clear) </param>
+            <param name="iterationCount">The number of iterations for the operation. The iteration
+            count should be as high as possible without causing
+            unreasonable delay. </param>
+            <returns>A byte array filled with pseudo-random key bytes.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampServer`1">
+            <summary>
+            Contains all methods of WAMP server.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampAuxiliaryServer">
+            <summary>
+            Represents the auxiliary methods of a WAMP server.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampAuxiliaryServer.Prefix(WampSharp.Core.Contracts.V1.IWampClient,System.String,System.String)">
+            <summary>
+            A prefix message sent by a client in order to map curies.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="prefix">The prefix.</param>
+            <param name="uri">The full uri.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampRpcServer`1">
+            <summary>
+            Contains the RPC methods of a WAMP server.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampRpcServer`1.Call(WampSharp.Core.Contracts.V1.IWampClient,System.String,System.String,`0[])">
+            <summary>
+            Occurs when a client calls a rpc method.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="callId">An id of this call.</param>
+            <param name="procUri">An uri representing the method to call.</param>
+            <param name="arguments">The arguments of the method to call.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampPubSubServer`1">
+            <summary>
+            Contains the pub/sub methods of a WAMP server.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Subscribe(WampSharp.Core.Contracts.V1.IWampClient,System.String)">
+            <summary>
+            Occurs when a client subscribes to a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client subscribed to.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Unsubscribe(WampSharp.Core.Contracts.V1.IWampClient,System.String)">
+            <summary>
+            Occurs when a client unsubscribes from a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client unsubscribed from.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Publish(WampSharp.Core.Contracts.V1.IWampClient,System.String,`0)">
+            <summary>
+            Occurs when a client publishes an event to a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client published to.</param>
+            <param name="event">The event the client published.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Publish(WampSharp.Core.Contracts.V1.IWampClient,System.String,`0,System.Boolean)">
+            <summary>
+            Occurs when a client publishes an event to a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client published to.</param>
+            <param name="event">The event the client published.</param>
+            <param name="excludeMe">A value indicating whether to exclude the client from
+            the recipients of the message.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Publish(WampSharp.Core.Contracts.V1.IWampClient,System.String,`0,System.String[])">
+            <summary>
+            Occurs when a client publishes an event to a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client published to.</param>
+            <param name="event">The event the client published.</param>
+            <param name="exclude">A collection of session ids of clients being excluded from the
+            recipients of the event.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubServer`1.Publish(WampSharp.Core.Contracts.V1.IWampClient,System.String,`0,System.String[],System.String[])">
+            <summary>
+            Occurs when a client publishes an event to a topic uri.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="topicUri">The topic uri the client published to.</param>
+            <param name="event">The event the client published.</param>
+            <param name="exclude">A collection of session ids of clients being excluded from the
+            recipients of the event.</param>
+            <param name="eligible">A collection of session ids of the only clients that should not be exluded from the
+            recipients of the event.</param>
+        </member>
+        <member name="T:WampSharp.Cra.WampCraAuthenticator`1">
+            <summary>
+            WAMP-CRA is a cryptographically strong challenge response authentication protocol based on
+            HMAC-SHA256. The protocol performs in-band authentication of WAMP clients to WAMP servers.
+            WAMP-CRA does not introduce any new WAMP protocol level message types, but implements the
+            authentication handshake via standard WAMP RPCs with well-known procedure URIs and signatures.
+            </summary>
+            <seealso cref="T:WampSharp.Cra.IWampCraProcedures"/>
+            <seealso cref="T:WampSharp.Cra.IWampCraAuthenticator"/>
+        </member>
+        <member name="T:WampSharp.Cra.IWampCraAuthenticator">
+            <summary>
+            Interface to data regarding a client that is authenticated (or being authenticated).
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.IWampCraAuthenticator.ClientSessionId">
+            <summary>
+            Gets the sessionId of the connected client.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.IWampCraAuthenticator.AuthKey">
+            <summary>
+            The authKey provided by the client during the WAMP-CRA authentication request.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.IWampCraAuthenticator.IsAuthenticated">
+            <summary>
+            Gets a value indicating whether the user identified by AuthKey is successfully authenticated.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.#ctor(System.String,WampSharp.Core.Serialization.IWampFormatter{`0},WampSharp.Rpc.Server.IWampRpcMetadataCatalog,WampSharp.PubSub.Server.IWampTopicContainer)">
+            <summary>
+            Specialized constructor for use only by derived classes.
+            </summary>
+            <param name="clientSessionId">Identifier for the client session.</param>
+            <param name="formatter">The formatter.</param>
+            <param name="metadataCatalog">The metadata catalog.</param>
+            <param name="topicContainer">The topic container.</param>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.GetAllRpcMethods">
+            <summary>
+            Gets all RPC methods in this collection.
+            </summary>
+            <returns>
+            An enumerator that allows foreach to be used to process all RPC methods in this collection.
+            </returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.GetTopicContainer">
+            <summary>
+            Gets topic container.
+            </summary>
+            <returns>The topic container.</returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.AuthReq(System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            RPC endpoint for clients to initiate the authentication handshake.
+            </summary>
+            <seealso cref="M:WampSharp.Cra.IWampCraProcedures.AuthReq(string,IDictionary{string,string})"/>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.Auth(System.String)">
+            <summary>
+            RPC endpoint for clients to actually authenticate after requesting authentication and
+            computing a signature from the authentication challenge.
+            </summary>
+            <seealso cref="M:WampSharp.Cra.IWampCraProcedures.Auth(string)"/>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.GetAuthSecret(System.String)">
+            <summary>
+            Gets the secret value for the supplied auth key used to hash the challenge.  Return null if
+            the key is not found.
+            </summary>
+            <param name="authKey">Authentication key, such as a user name or application name.</param>
+            <returns>The authentication secret.</returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.GetAuthPermissions(System.String,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Called to get the permissions the user identified by @authKey BEFORE the user is
+            authenticated. A copy of the client's request 'extra' is provided, and you can alter it here.
+            This will be passed back to the client as WampCraChallenge.extraAuth and MUST be what is
+            actually used for generating the secret.
+            </summary>
+            <remarks>
+            Here is a good place to check/fix something in @extra that is out of whack with the request,
+            like capping the number of iterations, or specifying a different (stricter, presumably)
+            salting mechanism. I really don't know or understand the purpose of sending available
+            endpoints to an unauthenticated user.  These are only used as part of the challenge, and are
+            regurgitated to you in OnAuthenticated. I see no reason why you have to return anything here
+            (yes, null is fine), and you can do all the work in OnAuthenticated(), including returning
+            the real list of permissions.
+            </remarks>
+            <param name="authKey">Authentication key, such as user name or application name.</param>
+            <param name="extra">Extra data for salting the secret. Possible key values 'salt' (required,
+            otherwise the secret is unsalted), 'iterations' (1000 default), and/or 'keylen' (32 default).
+            You may change these here and the client must use this method of signing.</param>
+            <returns>The permissions of the user if successfully authenticated.</returns>
+        </member>
+        <member name="M:WampSharp.Cra.WampCraAuthenticator`1.OnAuthenticated(System.String,WampSharp.Cra.WampCraPermissions)">
+            <summary>
+            Called after the user is successfully authenticated.  This call is the last opportunity for
+            you to set the WampPermissions, as these will be used to determine rpc and pub/sub operations
+            for the remainder of this session.
+            </summary>
+            <remarks>
+            NOTE: Throwing an exception here could put you in a bad state.  We'll send an error to the
+            client, and make them unauthenticated in this case.
+            </remarks>
+            <param name="authKey">Authentication key, such as user name or application name.</param>
+            <param name="permissions">The permissions initially granted in the call to
+            GetAuthPermissions(). You could change these, and the updated copy is what will be returned
+            to the client from its call to auth().</param>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.AuthKey">
+            <summary>
+            The authKey provided by the client during the WAMP-CRA authentication request.
+            </summary>
+            <seealso cref="P:WampSharp.Cra.IWampCraAuthenticator.AuthKey"/>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.ClientSessionId">
+            <summary>
+            Gets the sessionId of the connected client.
+            </summary>
+            <seealso cref="P:WampSharp.Cra.IWampCraAuthenticator.ClientSessionId"/>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.IsAuthenticated">
+            <summary>
+            Gets a value indicating whether the user identified by AuthKey is successfully authenticated.
+            </summary>
+            <seealso cref="P:WampSharp.Cra.IWampCraAuthenticator.IsAuthenticated"/>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.IsAuthenticationPending">
+            <summary>
+            Gets a value indicating whether we are waiting for an auth call after an authreq.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.CraPermissionsMapper">
+            <summary>
+            Gets the permissions that were sent to the client following a successful authreq call.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampCraAuthenticator`1.AllowAnonymous">
+            <summary>
+            Gets a value indicating whether we allow anonymous logins. An anonymous login is one where
+            the authKey is null or an empty string.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampAuxiliaryClient">
+            <summary>
+            Represents the auxiliary methods of a WAMP client.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampAuxiliaryClient.Welcome(System.String,System.Int32,System.String)">
+            <summary>
+            Server-to-client WELCOME message.
+            </summary>
+            <param name="sessionId">The client's session id.</param>
+            <param name="protocolVersion">The WAMP protocol version the server speaks.</param>
+            <param name="serverIdent">A string the server may use to disclose it's version, software, platform or identity.</param>
+        </member>
+        <member name="P:WampSharp.Core.Contracts.V1.IWampAuxiliaryClient.SessionId">
+            <summary>
+            Gets the given WAMP client's session id.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Client.IWampServerProxyBuilder`3">
+            <summary>
+            Builds a WAMP server proxy.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+            <typeparam name="TServer"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.IWampServerProxyBuilder`3.Create(`1,WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates a WAMP server proxy based on the given connection
+            which its callbacks will be handled by the given client.
+            </summary>
+            <param name="client">The given client which will handle server
+            callbacks.</param>
+            <param name="connection">The connection the proxy is based on.</param>
+            <returns>A proxy to the server.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Client.IWampServerProxyIncomingMessageHandlerBuilder`2">
+            <summary>
+            Builds an <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.IWampServerProxyIncomingMessageHandlerBuilder`2.Build(`1,WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates an <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/>
+            that will use <paramref name="client"/> in order to handle incoming callbacks.
+            </summary>
+            <param name="client">The client that will be used in order to handle incoming callbacks.</param>
+            <param name="connection">Not sure why this is here.</param>
+            <returns>The built <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`1"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Client.IWampServerProxyOutgoingMessageHandlerBuilder`2">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/> that will
+            send messages to a WAMP server.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.IWampServerProxyOutgoingMessageHandlerBuilder`2.Build(`1,WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Builds a <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/> that
+            will send messages using the given <paramref name="connection"/>
+            and get callbacks through the given <paramref name="client"/>.
+            </summary>
+            <param name="client">The client to receive callbacks from server through.</param>
+            <param name="connection">The connection to send messages through.</param>
+            <returns>The built <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Client.WampServerProxyBuilder`3">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Client.IWampServerProxyBuilder`3"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+            <typeparam name="TServer"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.WampServerProxyBuilder`3.#ctor(WampSharp.Core.Proxy.IWampOutgoingRequestSerializer{`0},WampSharp.Core.Client.IWampServerProxyOutgoingMessageHandlerBuilder{`0,`1})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Client.WampServerProxyBuilder`3"/>
+            </summary>
+            <param name="outgoingSerializer">A <see cref="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1"/>
+            used in order to serialize requests into <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.</param>
+            <param name="outgoingHandlerBuilder">A <see cref="T:WampSharp.Core.Client.IWampServerProxyOutgoingMessageHandlerBuilder`2"/>
+            used in order to build an <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/> that will handle serialized
+            <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.</param>
+        </member>
+        <member name="T:WampSharp.Core.Client.WampServerProxyHandler`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            that sends <see cref="T:WampSharp.Core.Message.WampMessage`1"/> to a given
+            <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/> and receives from that connection
+            messages which are handled by an <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1">
+            <summary>
+            Handles outgoing <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1.Handle(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Handles a given outgoing <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.
+            </summary>
+            <param name="message">The given message.</param>
+        </member>
+        <member name="M:WampSharp.Core.Client.WampServerProxyHandler`1.#ctor(WampSharp.Core.Listener.IWampConnection{`0},WampSharp.Core.Dispatch.IWampIncomingMessageHandler{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Client.WampServerProxyHandler`1"/>.
+            </summary>
+            <param name="connection">The connection used to send and receieve <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.</param>
+            <param name="incomingHandler">The handler used to handle incoming messages.</param>
+        </member>
+        <member name="T:WampSharp.Core.Client.WampServerProxyIncomingMessageHandlerBuilder`2">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Client.IWampServerProxyIncomingMessageHandlerBuilder`2"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.WampServerProxyIncomingMessageHandlerBuilder`2.#ctor(WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Client.WampServerProxyIncomingMessageHandlerBuilder`2"/>.
+            </summary>
+            <param name="formatter">A <see cref="T:WampSharp.Core.Serialization.IWampFormatter`1"/> used
+            in order to deserialize requests.</param>
+        </member>
+        <member name="T:WampSharp.Core.Client.WampServerProxyOutgoingMessageHandlerBuilder`2">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Client.IWampServerProxyOutgoingMessageHandlerBuilder`2"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TRawClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Client.WampServerProxyOutgoingMessageHandlerBuilder`2.#ctor(WampSharp.Core.Client.IWampServerProxyIncomingMessageHandlerBuilder{`0,`1})">
+            <summary>
+            Creates an instance of <see cref="T:WampSharp.Core.Client.WampServerProxyOutgoingMessageHandlerBuilder`2"/>
+            </summary>
+            <param name="incomingHandlerBuilder">An <see cref="T:WampSharp.Core.Client.IWampServerProxyIncomingMessageHandlerBuilder`2"/>
+            used in order to build incoming handler for callbacks.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.IWampMissingMethodContract`1">
+            <summary>
+            Handles messages that are not handled by other implemented interfaces
+            of a given handler.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.IWampMissingMethodContract`1.Missing(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Occurs when a message isn't handled by any other interface
+            method of the handler.
+            </summary>
+            <param name="rawMessage">The message.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.IWampMissingMethodContract`2">
+            <summary>
+            Handles messages that are not handled by other implemented interfaces
+            of a given handler.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.IWampMissingMethodContract`2.Missing(`1,WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Occurs when a message isn't handled by any other interface
+            method of the handler.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="rawMessage">The message.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampClient">
+            <summary>
+            An object version of <see cref="T:WampSharp.Core.Contracts.V1.IWampClient`1"/>
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampClient`1">
+            <summary>
+            Contains all methods of WAMP client.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampRpcClient`1">
+            <summary>
+            Contains the RPC methods of a WAMP client.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampRpcClient`1.CallResult(System.String,`0)">
+            <summary>
+            Occurs when a call result arrives.
+            </summary>
+            <param name="callId">The call id.</param>
+            <param name="result">The call result.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampRpcClient`1.CallError(System.String,System.String,System.String)">
+            <summary>
+            Occurs when a call error arrives.
+            </summary>
+            <param name="callId">The call id.</param>
+            <param name="errorUri">An uri to a page describing the error.</param>
+            <param name="errorDesc">The error description.</param>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampRpcClient`1.CallError(System.String,System.String,System.String,`0)">
+            <summary>
+            Occurs when a call error arrives.
+            </summary>
+            <param name="callId">The call id.</param>
+            <param name="errorUri">An uri to a page describing the error.</param>
+            <param name="errorDesc">The error description.</param>
+            <param name="errorDetails">An object representing error details.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampPubSubClient`1">
+            <summary>
+            Contains the pub/sub methods of a WAMP client.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.V1.IWampPubSubClient`1.Event(System.String,`0)">
+            <summary>
+            Occurs when a new event is published to topic 
+            the client is subscribed to.
+            </summary>
+            <param name="topicUri">The topic uri the current event is published to.</param>
+            <param name="event">The current event.</param>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampRpcClient">
+            <summary>
+            An object version of <see cref="T:WampSharp.Core.Contracts.V1.IWampRpcClient`1"/>
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampPubSubClient">
+            <summary>
+            An object version of <see cref="T:WampSharp.Core.Contracts.V1.IWampPubSubClient`1"/>
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.V1.IWampServer">
+            <summary>
+            An object version of <see cref="T:WampSharp.Core.Contracts.V1.IWampServer`1"/>
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.WampHandlerAttribute">
+            <summary>
+            Indicates that a method treats a specific <see cref="T:WampSharp.Core.Message.WampMessageType"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Contracts.WampHandlerAttribute.#ctor(WampSharp.Core.Message.WampMessageType)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Core.Contracts.WampHandlerAttribute"/>
+            with the given <see cref="P:WampSharp.Core.Contracts.WampHandlerAttribute.MessageType"/>.
+            </summary>
+            <param name="messageType">The <see cref="T:WampSharp.Core.Message.WampMessageType"/> this
+            method handles</param>
+        </member>
+        <member name="P:WampSharp.Core.Contracts.WampHandlerAttribute.MessageType">
+            <summary>
+            Gets the <see cref="T:WampSharp.Core.Message.WampMessageType"/> this method handles.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Contracts.WampProxyParameterAttribute">
+            <summary>
+            Indicates that a given parameter of a <see cref="T:WampSharp.Core.Contracts.WampHandlerAttribute"/> method 
+            is a proxy to a WAMP contract.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Cra.WampCraChallenge">
+            <summary>
+            This type is returned to the client from a call to IWampCra.authreq().  The client uses the
+            JSON as sent in addition to the contents of authextra (if present) to sign the challenge.
+            </summary>
+            <remarks>As this is defined as part of WAMP-CRA (v1), it should not be changed.</remarks>
+        </member>
+        <member name="T:WampSharp.Cra.WampCraPermissions">
+            <summary>
+            This type is returned to the client from a successful call to IWampCra.auth().
+            </summary>
+            <remarks>As this is defined as part of WAMP-CRA (v1), it should not be changed.</remarks>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.MethodInfoWampRpcMetadata">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Server.IWampRpcMetadata"/> using
+            Reflection.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.IWampRpcMetadata">
+            <summary>
+            Represents hosted rpc service metadata.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMetadata.GetServiceMethods">
+            <summary>
+            Gets the methods of the current rpc service.
+            </summary>
+            <returns>The the methods of the current rpc service.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.MethodInfoWampRpcMetadata.#ctor(System.Object,System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Server.MethodInfoWampRpcMetadata"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.MethodInfoWampRpcMethod">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Server.IWampRpcMethod"/> using <see cref="P:WampSharp.Rpc.Server.MethodInfoWampRpcMethod.MethodInfo"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.IWampRpcMethod">
+            <summary>
+            Represents a hosted rpc service's method.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMethod.InvokeAsync(WampSharp.Core.Contracts.V1.IWampClient,System.Object[])">
+            <summary>
+            Invokes the method asynchronously.
+            </summary>
+            <param name="client">The <see cref="T:WampSharp.Core.Contracts.V1.IWampClient"/> making the call.</param>
+            <param name="parameters">The parameters to invoke with.</param>
+            <returns>A task representing the result.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMethod.Invoke(WampSharp.Core.Contracts.V1.IWampClient,System.Object[])">
+            <summary>
+            Invokes the method syncronously.
+            </summary>
+            <param name="client">The <see cref="T:WampSharp.Core.Contracts.V1.IWampClient"/> making the call. </param>
+            <param name="parameters">The parameters to invoke with.</param>
+            <returns>The result of the method.</returns>
+        </member>
+        <member name="P:WampSharp.Rpc.Server.IWampRpcMethod.Name">
+            <summary>
+            The method's name.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Server.IWampRpcMethod.ProcUri">
+            <summary>
+            The method's proc uri.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Server.IWampRpcMethod.Parameters">
+            <summary>
+            The types of the method parameters.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.MethodInfoWampRpcMethod.#ctor(System.Object,System.Reflection.MethodInfo,System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Server.MethodInfoWampRpcMethod"/>.
+            </summary>
+            <param name="instance">The instance that this method will use.</param>
+            <param name="method">The <see cref="P:WampSharp.Rpc.Server.MethodInfoWampRpcMethod.MethodInfo"/> this method wraps.</param>
+            <param name="baseUri">The base uri of the method.</param>
+        </member>
+        <member name="T:WampSharp.Cra.WampPubSubPermissions">
+            <summary>
+            Represents Publish and Subscribe permissions for a Topic URI or URI Prefix.
+            </summary>
+            <remarks>As this is defined as part of WAMP-CRA (v1), it should not be changed.</remarks>
+        </member>
+        <member name="M:WampSharp.Cra.WampPubSubPermissions.#ctor(System.String,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="uri">PubSub Topic URI / URI prefix.</param>
+            <param name="prefix">URI matched by prefix?</param>
+            <param name="pub">Allow to publish?</param>
+            <param name="sub">Allow to subscribe?</param>
+        </member>
+        <member name="P:WampSharp.Cra.WampPubSubPermissions.uri">
+            <summary>
+            PubSub Topic URI / URI prefix.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampPubSubPermissions.prefix">
+            <summary>
+            URI matched by prefix?
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampPubSubPermissions.pub">
+            <summary>
+            Allow to publish?
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampPubSubPermissions.sub">
+            <summary>
+            Allow to subscribe?
+            </summary>
+        </member>
+        <member name="T:WampSharp.Cra.WampRpcPermissions">
+            <summary>
+            Represents RPC call permissions for an endpoint uri.
+            </summary>
+            <remarks>As this is defined as part of WAMP-CRA (v1), it should not be changed.</remarks>
+        </member>
+        <member name="M:WampSharp.Cra.WampRpcPermissions.#ctor(System.String,System.Boolean)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="uri">RPC Endpoint URI.</param>
+            <param name="call">Allow to call?</param>
+        </member>
+        <member name="P:WampSharp.Cra.WampRpcPermissions.uri">
+            <summary>
+            RPC Endpoint URI.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Cra.WampRpcPermissions.call">
+            <summary>
+            Allow to call?
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Curie.IWampCurieMapper">
+            <summary>
+            Maps prefixes to uris.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Curie.IWampCurieMapper.Resolve(System.String)">
+            <summary>
+            Resolves a compact uri by the current prefixes mapping.
+            </summary>
+            <param name="curie">The given compact uri.</param>
+            <returns>The resolved uri.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Curie.IWampCurieMapper.Map(System.String,System.String)">
+            <summary>
+            Maps a prefix to a uri.
+            </summary>
+            <param name="prefix">The given prefix.</param>
+            <param name="uri">The given uri.</param>
+        </member>
+        <member name="T:WampSharp.Core.Curie.WampCurieMapper">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Curie.IWampCurieMapper"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.Handler.IMethodBuilder`2">
+            <summary>
+            Builds a method by a given key.
+            </summary>
+            <typeparam name="TKey"></typeparam>
+            <typeparam name="TMethod"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.Handler.IMethodBuilder`2.BuildMethod(`0)">
+            <summary>
+            Builds a method by a given key.
+            </summary>
+            <returns>A delegate to the given method.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.Handler.IWampRequestMapper`1">
+            <summary>
+            Maps WAMP requests to their corresponding method.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.Handler.IWampRequestMapper`1.Map(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Maps the given WAMP request to its corresponding method.
+            </summary>
+            <param name="request">The given WAMP request.</param>
+            <returns>The given request's corresponding method.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.Handler.WampMethodBuilder`2">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Dispatch.Handler.IMethodBuilder`2"/>.
+            Builds non efficient delegates using <see cref="T:System.Reflection.MethodInfo"/>'s invoke.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.Handler.WampMethodBuilder`2.#ctor(System.Object,WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Dispatch.Handler.WampMethodBuilder`2"/>.
+            </summary>
+            <param name="instance">The instance to call its methods.</param>
+            <param name="formatter">The <see cref="T:WampSharp.Core.Serialization.IWampFormatter`1"/> used to convert the arguments.</param>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.Handler.WampMethodInfo">
+            <summary>
+            Represents a structure that contains information about a
+            <see cref="T:WampSharp.Core.Contracts.WampHandlerAttribute"/> method.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.Handler.WampMethodInfo.#ctor(System.Reflection.MethodInfo)">
+            <summary>
+            Creates a new <see cref="T:WampSharp.Core.Dispatch.Handler.WampMethodInfo"/> given a
+            <see cref="T:System.Reflection.MethodInfo"/>.
+            </summary>
+            <param name="method">The given method to obtain information
+            from.</param>
+        </member>
+        <member name="P:WampSharp.Core.Dispatch.Handler.WampMethodInfo.Method">
+            <summary>
+            Gets the <see cref="T:System.Reflection.MethodInfo"/> this method represents.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Dispatch.Handler.WampMethodInfo.ArgumentsCount">
+            <summary>
+            Gets the number of arguments this method gets, not including
+            <see cref="T:WampSharp.Core.Contracts.WampProxyParameterAttribute"/> parameter.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Dispatch.Handler.WampMethodInfo.HasWampClientArgument">
+            <summary>
+            Returns a value indicating whether this method gets a
+            <see cref="T:WampSharp.Core.Contracts.WampProxyParameterAttribute"/> parameter.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Dispatch.Handler.WampMethodInfo.HasParamsArgument">
+            <summary>
+            Returns a value indicating whether this method has a params
+            argument.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Dispatch.Handler.WampMethodInfo.IsRawMethod">
+            <summary>
+            Returns a value indicating whether this method receives the given
+            <see cref="T:WampSharp.Core.Message.WampMessage`1"/> as is.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.Handler.WampRequestMapper`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Dispatch.Handler.IWampRequestMapper`1"/> that
+            maps requests to methods using <see cref="T:WampSharp.Core.Contracts.WampHandlerAttribute"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.Handler.WampRequestMapper`1.#ctor(System.Type,WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Core.Dispatch.Handler.WampRequestMapper`1"/>
+            </summary>
+            <param name="type">The type to map WAMP requests its methods.</param>
+            <param name="formatter">A <see cref="T:WampSharp.Core.Serialization.IWampFormatter`1"/> used
+            to check if a parameter can be binded to given type.</param>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2">
+            <summary>
+            Handles incoming <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s receieved from clients.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+            <remarks>
+            This should probably dispatch the given message to its corresponding
+            method.
+            </remarks>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2.HandleMessage(`1,WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Handles a given incoming message from a given client.
+            </summary>
+            <param name="client">The client who sent the message.</param>
+            <param name="message">The message.</param>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`1">
+            <summary>
+            Handles <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`1.HandleMessage(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Handles a given incoming message.
+            </summary>
+            <param name="message">The message.</param>
+        </member>
+        <member name="T:WampSharp.Core.Dispatch.WampIncomingMessageHandler`2">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/>,
+            <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`1"/> that dispatches
+            <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s to their corresponding methods.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Dispatch.WampIncomingMessageHandler`2.#ctor(WampSharp.Core.Dispatch.Handler.IWampRequestMapper{`0},WampSharp.Core.Dispatch.Handler.IMethodBuilder{WampSharp.Core.Dispatch.Handler.WampMethodInfo,System.Action{`1,WampSharp.Core.Message.WampMessage{`0}}})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Dispatch.WampIncomingMessageHandler`2"/>
+            given <paramref name="wampRequestMapper"/> and
+            <paramref name="methodBuilder"/>
+            </summary>
+            <param name="wampRequestMapper">The <see cref="T:WampSharp.Core.Dispatch.Handler.IWampRequestMapper`1"/>
+            used in order to map <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s to their suitable methods.</param>
+            <param name="methodBuilder">The <see cref="T:WampSharp.Core.Dispatch.Handler.IMethodBuilder`2"/> used 
+            in order to build the corresponding methods.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampClientBuilder`2">
+            <summary>
+            Builds a proxy to a WAMP client given a <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampClientBuilder`2.Create(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates a proxy to a WAMP client by the given connection.
+            </summary>
+            <param name="connection">The connection to the client.</param>
+            <returns>A proxy to the WAMP client.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampClientBuilderFactory`2">
+            <summary>
+            Builds a <see cref="T:WampSharp.Core.Listener.IWampClientBuilder`2"/> corresponding 
+            for a given <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+            <remarks>
+            This interface solves a problem that two objects are circular dependent
+            in readonly fields.
+            </remarks>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampClientBuilderFactory`2.GetClientBuilder(WampSharp.Core.Listener.IWampClientContainer{`0,`1})">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Listener.IWampClientBuilder`2"/>
+            given a <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/>.
+            </summary>
+            <param name="container">The given <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/>.</param>
+            <returns>The created <see cref="T:WampSharp.Core.Listener.IWampClientBuilder`2"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder`1">
+            <summary>
+            Builds an <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            for a given connection.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder`1.Build(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Builds an <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            for the given <paramref name="connection"/>.
+            </summary>
+            <param name="connection">The given connection.</param>
+            <returns>The built <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/></returns>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampSessionIdGenerator">
+            <summary>
+            Generates session ids for clients.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampSessionIdGenerator.Generate">
+            <summary>
+            Generates a session id for a client.
+            </summary>
+            <returns>The generated session id.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Listener.V1.WampClientBuilder`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampClientBuilder`2"/>
+            that is a bit specific to WAMPv1 (because of curies).
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.V1.WampClientBuilder`1.#ctor(WampSharp.Core.Listener.IWampSessionIdGenerator,WampSharp.Core.Proxy.IWampOutgoingRequestSerializer{`0},WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder{`0},WampSharp.Core.Listener.IWampClientContainer{`0,WampSharp.Core.Contracts.V1.IWampClient})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.V1.WampClientBuilder`1"/>.
+            </summary>
+            <param name="sessionIdGenerator">A given <see cref="T:WampSharp.Core.Listener.IWampSessionIdGenerator"/> used in order
+            to generate session ids for clients.</param>
+            <param name="outgoingSerializer">A <see cref="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1"/>
+            used to serialize message calls into <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s</param>
+            <param name="outgoingHandlerBuilder">An <see cref="T:WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder`1"/> used to build
+            a <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/> per connection.</param>
+            <param name="container">A <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/> that contains all clients.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.V1.WampClientBuilderFactory`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampClientBuilderFactory`2"/>
+            using <see cref="T:WampSharp.Core.Listener.V1.WampClientBuilder`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.V1.WampClientBuilderFactory`1.#ctor(WampSharp.Core.Listener.IWampSessionIdGenerator,WampSharp.Core.Proxy.IWampOutgoingRequestSerializer{`0},WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.V1.WampClientBuilderFactory`1"/>.
+            </summary>
+            <param name="sessionIdGenerator">The <see cref="T:WampSharp.Core.Listener.IWampSessionIdGenerator"/> used to generate
+            session ids.</param>
+            <param name="outgoingSerializer">The <see cref="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1"/>
+            used to serialize methods call to <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.</param>
+            <param name="outgoingHandlerBuilder">The <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            used to create the <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/> used to
+            handle outgoing <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampOutgoingMessageHandler`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            that dispatches messages to an <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampOutgoingMessageHandler`1.#ctor(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.WampOutgoingMessageHandler`1"/>
+            using a given <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>
+            </summary>
+            <param name="connection">The given WAMP connection.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampOutgoingMessageHandlerBuilder`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampOutgoingMessageHandlerBuilder`1"/>
+            using <see cref="T:WampSharp.Core.Listener.WampOutgoingMessageHandler`1"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampSessionIdGenerator">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampSessionIdGenerator"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampSessionIdGenerator.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.WampSessionIdGenerator"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampClientContainer`2">
+            <summary>
+            A container of client proxies.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampClientContainer`2.GetClient(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Gets a client proxy for the given <paramref name="connection"/>.
+            </summary>
+            <param name="connection">The given connection.</param>
+            <returns>A client proxy.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampClientContainer`2.GetAllClients">
+            <summary>
+            Returns all clients currently registered in the container.
+            </summary>
+            <returns>An enumerable of clients currently present in the container.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IWampClientContainer`2.RemoveClient(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Removes a client from the container given its connection.
+            </summary>
+            <param name="connection">The given client's connection.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampClientContainer`2">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampClientContainer`2.#ctor(WampSharp.Core.Listener.IWampClientBuilderFactory{`0,`1})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.WampClientContainer`2"/>
+            using a client builder that is activated using the given 
+            <paramref name="clientBuilderFactory"/> and this container.
+            </summary>
+            <param name="clientBuilderFactory">The given <see cref="T:WampSharp.Core.Listener.IWampClientBuilderFactory`2"/>.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampClientContainerDisposable`2">
+            <summary>
+            An <see cref="T:System.IDisposable"/> that is used as a mixin for implementing
+            <see cref="T:System.IDisposable"/> for generated proxies.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampClientContainerDisposable`2.#ctor(WampSharp.Core.Listener.IWampClientContainer{`0,`1},WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Core.Listener.WampClientContainerDisposable`2"/>.
+            </summary>
+            <param name="container">The container that contains the client proxy.</param>
+            <param name="connection">The connection of the client.</param>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IControlledWampConnection`1">
+            <summary>
+            Represents a <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/> that its state
+            can be controlled.
+            </summary>
+            <remarks>
+            This interface was created in order to apply client side connection
+            capabilites.
+            </remarks>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampConnection`1">
+            <summary>
+            Represents a WAMP bi-directional connection.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.IControlledWampConnection`1.Connect">
+            <summary>
+            Tries to establish a connection to the remote server.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampConnectionListener`1">
+            <summary>
+            Represents a <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/> listener.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Listener.IWampConnectionMonitor">
+            <summary>
+            Allows getting notified when a WAMP client gets disconnected.
+            </summary>
+        </member>
+        <member name="E:WampSharp.Core.Listener.IWampConnectionMonitor.ConnectionClosed">
+            <summary>
+            Occurs when a connection is closed.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampConnectionMonitor`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Listener.IWampConnectionMonitor"/> used
+            as a mixin in <see cref="T:WampSharp.Core.Listener.IWampClientBuilder`2"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Listener.V1.WampListener`1">
+            <summary>
+            A <see cref="T:WampSharp.Core.Listener.WampListener`2"/> that is
+            WAMPv1 specific.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="T:WampSharp.Core.Listener.WampListener`2">
+            <summary>
+            Listens to <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>s, receives 
+            <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s and dispatches them to a given <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TClient"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampListener`2.#ctor(WampSharp.Core.Listener.IWampConnectionListener{`0},WampSharp.Core.Dispatch.IWampIncomingMessageHandler{`0,`1},WampSharp.Core.Listener.IWampClientContainer{`0,`1})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.WampListener`2"/>
+            </summary>
+            <param name="listener">The <see cref="T:WampSharp.Core.Listener.IWampConnectionListener`1"/> used in order to 
+            accept incoming connections.</param>
+            <param name="handler">The <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/> used
+            in order to dispatch incoming messages.</param>
+            <param name="clientContainer">The <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/> use
+            in order to store the connected clients.</param>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampListener`2.Start">
+            <summary>
+            Starts listening for <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>s.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Listener.WampListener`2.Stop">
+            <summary>
+            Stops the listener.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Listener.WampListener`2.ClientContainer">
+            <summary>
+            The <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/>
+            holding all current connected clients.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Listener.V1.WampListener`1.#ctor(WampSharp.Core.Listener.IWampConnectionListener{`0},WampSharp.Core.Dispatch.IWampIncomingMessageHandler{`0,WampSharp.Core.Contracts.V1.IWampClient},WampSharp.Core.Listener.IWampClientContainer{`0,WampSharp.Core.Contracts.V1.IWampClient})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.V1.WampListener`1"/>
+            </summary>
+            <param name="listener">The <see cref="T:WampSharp.Core.Listener.IWampConnectionListener`1"/> used in order to 
+            accept incoming connections.</param>
+            <param name="handler">The <see cref="T:WampSharp.Core.Dispatch.IWampIncomingMessageHandler`2"/> used
+            in order to dispatch incoming messages.</param>
+            <param name="clientContainer">The <see cref="T:WampSharp.Core.Listener.IWampClientContainer`2"/> use
+            in order to store the connected clients.</param>
+        </member>
+        <member name="E:WampSharp.Core.Listener.V1.WampListener`1.SessionCreated">
+            <summary>
+            Occurs when a WAMP session is created.
+            </summary>
+        </member>
+        <member name="E:WampSharp.Core.Listener.V1.WampListener`1.SessionClosed">
+            <summary>
+            Occurs when a WAMP session is closed.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Listener.V1.WampSessionEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for WAMP session events.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Listener.V1.WampSessionEventArgs.#ctor(System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Listener.V1.WampSessionEventArgs"/>.
+            </summary>
+            <param name="sessionId">The session id.</param>
+        </member>
+        <member name="P:WampSharp.Core.Listener.V1.WampSessionEventArgs.SessionId">
+            <summary>
+            The session id.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Message.IWampMessageFormatter`1">
+            <summary>
+            Used in order to convert a JSON message to a
+            <see cref="T:WampSharp.Core.Message.WampMessage`1"/> and vice-versa.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Message.IWampMessageFormatter`1.Parse(`0)">
+            <summary>
+            Parses a <see cref="T:WampSharp.Core.Message.WampMessage`1"/>
+            from a JSON-array.
+            </summary>
+            <param name="message">The given JSON array.</param>
+            <returns>The parsed <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Message.IWampMessageFormatter`1.Format(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Converts a <see cref="T:WampSharp.Core.Message.WampMessage`1"/>
+            to a JSON-array.
+            </summary>
+            <param name="message">The given <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</param>
+            <returns>The converted JSON array</returns>
+        </member>
+        <member name="T:WampSharp.Core.Message.WampMessageType">
+            <summary>
+            Represents message types defined by the WAMP protocl.
+            </summary>
+            <remarks>
+            This enum comntains the message types of both WAMPv1 and WAMPv2.
+            The reason for this is that it would be more complicated to build
+            the framework if this is seperated into two enums.
+            </remarks>
+        </member>
+        <member name="T:WampSharp.Core.Message.WampMessage`1">
+            <summary>
+            Represents a WAMP protocol message.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="P:WampSharp.Core.Message.WampMessage`1.MessageType">
+            <summary>
+            Gets or sets the message type.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Core.Message.WampMessage`1.Arguments">
+            <summary>
+            Gets or sets the arguments of this message.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1">
+            <summary>
+            Serializes method calls into <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1.SerializeRequest(System.Reflection.MethodInfo,System.Object[])">
+            <summary>
+            Serializes a method call into a <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.
+            </summary>
+            <param name="method">The method that was called.</param>
+            <param name="arguments">The arguments of the call.</param>
+            <returns>The serialized <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Proxy.WampInterceptorSelector`1">
+            <summary>
+            An <see cref="T:Castle.DynamicProxy.IInterceptorSelector"/> that chooses between
+            <see cref="T:WampSharp.Core.Proxy.WampOutgoingInterceptor`1"/> and 
+            <see cref="T:WampSharp.Core.Proxy.SessionIdPropertyInterceptor"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.WampInterceptorSelector`1.#ctor(WampSharp.Core.Proxy.WampOutgoingInterceptor{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Core.Proxy.WampInterceptorSelector`1"/>.
+            </summary>
+            <param name="interceptor">The given <see cref="T:WampSharp.Core.Proxy.WampOutgoingInterceptor`1"/> used
+            for WAMP method calls</param>
+        </member>
+        <member name="T:WampSharp.Core.Proxy.WampOutgoingInterceptor`1">
+            <summary>
+            An interceptor that serializes requests and sends them to a
+            <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.WampOutgoingInterceptor`1.#ctor(WampSharp.Core.Proxy.IWampOutgoingRequestSerializer{`0},WampSharp.Core.Proxy.IWampOutgoingMessageHandler{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Core.Proxy.WampOutgoingInterceptor`1"/>.
+            </summary>
+            <param name="outgoingSerializer">The <see cref="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1"/> to
+            serialize method calls with.</param>
+            <param name="outgoingHandler">The <see cref="T:WampSharp.Core.Proxy.IWampOutgoingMessageHandler`1"/>
+            that will deal with the serialized method calls.</param>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.WampOutgoingInterceptor`1.Intercept(Castle.DynamicProxy.IInvocation)">
+            <summary>
+            <see cref="M:Castle.DynamicProxy.IInterceptor.Intercept(Castle.DynamicProxy.IInvocation)"/>
+            </summary>
+        </member>
+        <member name="T:WampSharp.Core.Proxy.WampOutgoingRequestSerializer`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Core.Proxy.IWampOutgoingRequestSerializer`1"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Proxy.WampOutgoingRequestSerializer`1.#ctor(WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Core.Proxy.WampOutgoingRequestSerializer`1"/>.
+            </summary>
+            <param name="formatter">The <see cref="T:WampSharp.Core.Serialization.IWampFormatter`1"/> to
+            serialize arguments with.</param>
+        </member>
+        <member name="T:WampSharp.Core.Serialization.IWampFormatter`1">
+            <summary>
+            Represents a messages formatter
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampFormatter`1.CanConvert(`0,System.Type)">
+            <summary>
+            Returns a value indicating whether the given argument
+            can be deserialized to the given type.
+            </summary>
+            <param name="argument">The given argument.</param>
+            <param name="type">The given type.</param>
+            <returns>A value indicating whether the given argument
+            can be casted to the given type.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampFormatter`1.Deserialize``1(`0)">
+            <summary>
+            Deserializes the given messages to the given type.
+            </summary>
+            <typeparam name="TTarget"></typeparam>
+            <param name="message">The given message.</param>
+            <returns>The deserialized message.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampFormatter`1.Deserialize(System.Type,`0)">
+            <summary>
+            Deserializes the given messages to the given type.
+            </summary>
+            <param name="type">The given type.</param>
+            <param name="message">The given message.</param>
+            <returns>The deserialized message.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampFormatter`1.Serialize(System.Object)">
+            <summary>
+            Serializes the given object to the message type.
+            </summary>
+            <param name="value">The given object.</param>
+            <returns>The serialized message.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Serialization.IWampMessageParser`1">
+            <summary>
+            Parses string messages from the stream into <see cref="T:WampSharp.Core.Message.WampMessage`1"/>s
+            and vice versa.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampMessageParser`1.Parse(System.String)">
+            <summary>
+            Parses a text message to <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.
+            </summary>
+            <param name="text">The given text message.</param>
+            <returns>The converted <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Serialization.IWampMessageParser`1.Format(WampSharp.Core.Message.WampMessage{`0})">
+            <summary>
+            Formats a <see cref="T:WampSharp.Core.Message.WampMessage`1"/> to string.
+            </summary>
+            <param name="message">The given <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</param>
+            <returns>A string representing the given <see cref="T:WampSharp.Core.Message.WampMessage`1"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Core.Utilities.GenericTypeExtensions">
+            <summary>
+            Contains extension methods of <see cref="T:System.Type"/> for 
+            generic types.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Core.Utilities.GenericTypeExtensions.IsGenericAssignableFrom(System.Type,System.Type)">
+            <summary>
+            Returns a value indicating whether the given type
+            can be converted to a generic version of the given open generic type.
+            </summary>
+            <param name="openGenericType">The given open generic type.</param>
+            <param name="type">The given type.</param>
+            <returns>A value indicating whether the given type
+            can be converted to a generic version of the given open generic type.</returns>
+        </member>
+        <member name="M:WampSharp.Core.Utilities.GenericTypeExtensions.GetClosedGenericTypeImplementation(System.Type,System.Type)">
+            <summary>
+            Returns the closed generic type of the given generic open type,
+            that the given type is assignable to.
+            </summary>
+            <param name="type">The given type.</param>
+            <param name="openGenericType">The open generic type.</param>
+            <returns>The closed generic type of the given generic open type,
+            that the given type is assignable to.</returns>
+        </member>
+        <member name="T:WampSharp.PubSub.Client.IWampPubSubClientFactory`1">
+            <summary>
+            An interface that allows to consume pub/sub client capabilities.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Client.IWampPubSubClientFactory`1.GetSubject``1(System.String,WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Gets a subject proxy of a given topic uri.
+            </summary>
+            <typeparam name="TEvent"></typeparam>
+            <param name="topicUri">The given topic uri.</param>
+            <param name="connection">The connection the messages are sent through.</param>
+            <returns>The requested subject.</returns>
+        </member>
+        <member name="T:WampSharp.PubSub.Client.IWampServerProxyFactory`1">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Contracts.V1.IWampServer"/> proxy that handles
+            <see cref="T:WampSharp.Core.Contracts.V1.IWampPubSubClient`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Client.IWampServerProxyFactory`1.Create(WampSharp.Core.Contracts.V1.IWampPubSubClient{`0},WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Contracts.V1.IWampServer"/> that its callbacks will be
+            redirecte to a given <see cref="T:WampSharp.Core.Contracts.V1.IWampPubSubClient`1"/>.
+            </summary>
+            <param name="client">The given <see cref="T:WampSharp.Core.Contracts.V1.IWampPubSubClient`1"/>.</param>
+            <param name="connection">The connection to the proxy.</param>
+            <returns>The created proxy.</returns>
+        </member>
+        <member name="T:WampSharp.PubSub.Client.WampPubSubClientFactory`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.PubSub.Client.IWampPubSubClientFactory`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Client.WampPubSubClientFactory`1.#ctor(WampSharp.PubSub.Client.IWampServerProxyFactory{`0},WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Client.WampPubSubClientFactory`1"/>.
+            </summary>
+            <param name="serverProxyFactory">The server proxy factory used to get callbacks.</param>
+            <param name="formatter">The formatter used to serialize/deserialize messages.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Client.WampPubSubSubject`2">
+            <summary>
+            Represents a WAMP topic of a given topic uri.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+            <typeparam name="TEvent"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Client.WampPubSubSubject`2.#ctor(System.String,WampSharp.PubSub.Client.IWampServerProxyFactory{`0},WampSharp.Core.Listener.IWampConnection{`0},WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Client.WampPubSubSubject`2"/>.
+            </summary>
+            <param name="topicUri">The topic uri of the current topic.</param>
+            <param name="serverProxyFactory">The server proxy factory used to get
+            callbacks from the server.</param>
+            <param name="connection">The underlying connection this subject uses
+            in order to send/receive messages.</param>
+            <param name="formatter">The formatter used in order to serialize/deserialize
+            the messages sent.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Client.WampServerProxyFactory`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.PubSub.Client.IWampServerProxyFactory`1"/> using
+            <see cref="T:WampSharp.Core.Client.IWampServerProxyBuilder`3"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Client.WampServerProxyFactory`1.#ctor(WampSharp.Core.Client.IWampServerProxyBuilder{`0,WampSharp.Core.Contracts.V1.IWampPubSubClient{`0},WampSharp.Core.Contracts.V1.IWampServer})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Client.WampServerProxyFactory`1"/>.
+            </summary>
+            <param name="proxyBuilder">The <see cref="T:WampSharp.Core.Client.IWampServerProxyBuilder`3"/>
+            used in order to create the server proxy.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampSubscriptionAddEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for a new subscription.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampSubscriptionEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for WAMP subscription events.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampSubscriptionEventArgs.#ctor(System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampSubscriptionEventArgs"/>.
+            </summary>
+            <param name="sessionId">The session id of the current subscriber.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampSubscriptionEventArgs.SessionId">
+            <summary>
+            The session id of the subscriber.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampSubscriptionAddEventArgs.#ctor(System.String,System.IObserver{System.Object})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampSubscriptionAddEventArgs"/>.
+            </summary>
+            <param name="sessionId">The session id of the subscribing client.</param>
+            <param name="observer">A proxy to the subscribing client.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampSubscriptionAddEventArgs.Observer">
+            <summary>
+            A proxy to the subscribing client.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampSubscriptionRemoveEventArgs">
+            <summary>
+            Represnts <see cref="T:System.EventArgs"/> for WAMP subscription removal events.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampSubscriptionRemoveEventArgs.#ctor(System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampSubscriptionRemoveEventArgs"/>.
+            </summary>
+            <param name="sessionId">The session id of the removed subscriber.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampTopicCreatedEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for an event that occurs when a new
+            <see cref="T:WampSharp.PubSub.Server.IWampTopic"/> is created.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampTopicEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for <see cref="T:WampSharp.PubSub.Server.IWampTopic"/>
+            creation/destruction events.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampTopicEventArgs.#ctor(WampSharp.PubSub.Server.IWampTopic)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampTopicEventArgs"/>.
+            </summary>
+            <param name="topic">The relevant topic.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampTopicEventArgs.Topic">
+            <summary>
+            Gets the relevant topic.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampTopicCreatedEventArgs.#ctor(WampSharp.PubSub.Server.IWampTopic)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampTopicCreatedEventArgs"/>.
+            </summary>
+            <param name="topic">The created topic.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampTopicRemovedEventArgs">
+            <summary>
+            Represents <see cref="T:System.EventArgs"/> for <see cref="T:WampSharp.PubSub.Server.IWampTopic"/> destruction
+            event.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampTopicRemovedEventArgs.#ctor(WampSharp.PubSub.Server.IWampTopic)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampTopicRemovedEventArgs"/>.
+            </summary>
+            <param name="topic">The removed topic.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.IWampTopic">
+            <summary>
+            Represents a WAMP topic, that some clients are subscribed to.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopic.Unsubscribe(System.String)">
+            <summary>
+            Unsubscribes a subscriber given its session id from the topic.
+            </summary>
+            <param name="sessionId">The subscriber's session id.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.IWampTopic.TopicUri">
+            <summary>
+            Gets the uri of the topic.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.IWampTopic.Persistent">
+            <summary>
+            Gets a value indicating whether this topic is persistent.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.IWampTopic.HasObservers">
+            <summary>
+            Gets a value indicating whether this topic has observers.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopic.SubscriptionAdding">
+            <summary>
+            Occurs when a new subscription is being added to the topic.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopic.SubscriptionAdded">
+            <summary>
+            Occurs after a new subscription has been added to the topic.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopic.SubscriptionRemoving">
+            <summary>
+            Occurs when a subscription is being removed from the topic.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopic.SubscriptionRemoved">
+            <summary>
+            Occurs after a subscription has been removed from the topic.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopic.TopicEmpty">
+            <summary>
+            Occurs when the topic is empty.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.IWampTopicContainer">
+            <summary>
+            Represents a container for <see cref="T:WampSharp.PubSub.Server.IWampTopic"/>s.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainer.CreateTopicByUri(System.String,System.Boolean)">
+            <summary>
+            Creates and adds a topic to the container given its uri.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="persistent">A value indicating whether the topic is persistent.</param>
+            <returns>The created topic.</returns>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainer.GetOrCreateTopicByUri(System.String,System.Boolean)">
+            <summary>
+            Gets or creates a topic given its uri.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="persistent">A value indicating whether the topic is persistent.</param>
+            <returns>The requested topic.</returns>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainer.GetTopicByUri(System.String)">
+            <summary>
+            Gets a topic given it uri.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <returns>The requested topic.</returns>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainer.TryRemoveTopicByUri(System.String,WampSharp.PubSub.Server.IWampTopic@)">
+            <summary>
+            Tries to remove a topic given its uri.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="topic">The removed topic.</param>
+            <returns>A value indicating whether the removal succeeded.</returns>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.IWampTopicContainer.TopicUris">
+            <summary>
+            Gets the uris of the topics present in the container.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.IWampTopicContainer.Topics">
+            <summary>
+            Gets the topics currently present in the container.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopicContainer.TopicCreated">
+            <summary>
+            Occurs when a new topic is created.
+            </summary>
+        </member>
+        <member name="E:WampSharp.PubSub.Server.IWampTopicContainer.TopicRemoved">
+            <summary>
+            Occurs when a topic is removed.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.IWampTopicContainerExtended`1">
+            <summary>
+            A <see cref="T:WampSharp.PubSub.Server.IWampTopicContainer"/> with extra thread-safe
+            functionality.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainerExtended`1.Subscribe(System.String,System.IObserver{System.Object})">
+            <summary>
+            Subscribes to a topic given its uri.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="observer">The observer to subscribe to the topic with.</param>
+            <returns>A disposable used to unsubscribe from the topic.</returns>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainerExtended`1.Unsubscribe(System.String,System.String)">
+            <summary>
+            Unsubscribes an observer from the topic given its session id.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="sessionId">The observer's session id.</param>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.IWampTopicContainerExtended`1.Publish(System.String,`0,System.String[],System.String[])">
+            <summary>
+            Publishes an event to a given topic.
+            </summary>
+            <param name="topicUri">The topic's uri.</param>
+            <param name="event">The event to publish.</param>
+            <param name="exclude">An array of excluded subscribers' session ids.</param>
+            <param name="eligible">An array of eligible subscribers' session ids.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampNotification">
+            <summary>
+            Represents a <see cref="T:WampSharp.PubSub.Server.IWampTopic"/>'s publication.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampNotification.#ctor(System.Object)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampNotification"/>.
+            </summary>
+            <param name="event">The event to publish</param>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampNotification.#ctor(System.Object,System.Collections.Generic.ICollection{System.String},System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampNotification"/>.
+            </summary>
+            <param name="event">The event to publish</param>
+            <param name="excluded">A collection of excluded observers' session ids.</param>
+            <param name="eligible">A collection of eligible observers' session ids.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampNotification.Event">
+            <summary>
+            Gets the published event.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampNotification.Excluded">
+            <summary>
+            Gets a collection of excluded observers' session ids.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampNotification.Eligible">
+            <summary>
+            Gets a collection of eligible observers' session ids.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampObserver">
+            <summary>
+            Represents a proxy to a topic's subscriber.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampObserver.#ctor(System.String,WampSharp.Core.Contracts.V1.IWampClient)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampObserver"/>.
+            </summary>
+            <param name="topicUri">The uri of the topic the observer belongs to.</param>
+            <param name="client">The proxy to the client.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampObserver.SessionId">
+            <summary>
+            Gets the session id of the client.
+            </summary>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampObserver.Client">
+            <summary>
+            Gets a proxy to the client.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampPubSubServer`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.PubSub.Server.WampPubSubServer`1"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampPubSubServer`1.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampPubSubServer`1"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampPubSubServer`1.#ctor(WampSharp.PubSub.Server.IWampTopicContainerExtended{`0})">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.PubSub.Server.WampPubSubServer`1"/>.
+            </summary>
+            <param name="container">The <see cref="T:WampSharp.PubSub.Server.IWampTopicContainerExtended`1"/>
+            the server will work against.</param>
+        </member>
+        <member name="P:WampSharp.PubSub.Server.WampPubSubServer`1.TopicContainer">
+            <summary>
+            Gets the <see cref="T:WampSharp.PubSub.Server.IWampTopicContainer"/> this server works against.
+            </summary>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampTopic">
+            <summary>
+            An implementation of <see cref="T:WampSharp.PubSub.Server.IWampTopic"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampTopic.#ctor(System.String,System.Boolean)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampTopic"/>.
+            </summary>
+            <param name="topicUri">The uri of the topic.</param>
+            <param name="persistent">A value indicating whether the topic is persistent.</param>
+        </member>
+        <member name="T:WampSharp.PubSub.Server.WampTopicContainer`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.PubSub.Server.IWampTopicContainerExtended`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.PubSub.Server.WampTopicContainer`1.#ctor">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.PubSub.Server.WampTopicContainer`1"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.Dynamic.DynamicWampRpcClient">
+            <summary>
+            A dynamic rpc client. 
+            Allows to call rpc methods without having a given interface.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.Dynamic.DynamicWampRpcClient.#ctor(WampSharp.Rpc.Client.IWampRpcClientHandler,WampSharp.Rpc.Client.IWampRpcSerializer)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.Dynamic.DynamicWampRpcClient"/>.
+            </summary>
+            <param name="clientHandler">The <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/>
+            that will deal rpc calls.</param>
+            <param name="serializer">The <see cref="T:WampSharp.Rpc.Client.IWampRpcSerializer"/> that will serialize
+            RPC calls.</param>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.Dynamic.WampRpcMethodInfo">
+            <summary>
+            An implementation of <see cref="T:System.Reflection.MethodInfo"/> for
+            <see cref="T:WampSharp.Rpc.Client.IWampRpcSerializer"/> and
+            <see cref="T:WampSharp.Rpc.Client.IWampProcUriMapper"/>.
+            </summary>
+            <remarks>
+            This class was written because I think that it is a better solution
+            than creating a structure that describes methods or creating overloads
+            for these interfaces that receive method name and return type.
+            </remarks>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampProcUriMapper">
+            <summary>
+            Maps WAMP RPC method calls to their corresponding
+            uris.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampProcUriMapper.Map(System.Reflection.MethodInfo)">
+            <summary>
+            Maps the given method to its corresponding uri.
+            </summary>
+            <param name="method">The given method.</param>
+            <returns>The method's corresponding uri.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampRpcClientFactory`1">
+            <summary>
+            An interface that allows to consume rpc client capabilities.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcClientFactory`1.GetClient``1(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Gets a proxy to the given interface on the given connection.
+            </summary>
+            <typeparam name="TProxy"></typeparam>
+            <param name="connection">The given connection.</param>
+            <returns>The created proxy.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcClientFactory`1.GetDynamicClient(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Gets a dynamic proxy on the given connection.
+            </summary>
+            <param name="connection">The given connection.</param>
+            <returns>The created proxy.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampRpcClientHandler">
+            <summary>
+            Handles outgoing RPC calls.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcClientHandler.Handle(WampSharp.Rpc.Client.WampRpcCall)">
+            <summary>
+            Handles synchronous rpc calls.
+            </summary>
+            <param name="rpcCall">The given rpc call.</param>
+            <returns>The result of the call.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcClientHandler.HandleAsync(WampSharp.Rpc.Client.WampRpcCall)">
+            <summary>
+            Handles asynchronous rpc calls.
+            </summary>
+            <param name="rpcCall">The given rpc call.</param>
+            <returns>The a task that represents result of the call.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampRpcClientHandlerBuilder`1">
+            <summary>
+            Builds a <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/> given a connection.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcClientHandlerBuilder`1.Build(WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Builds a <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/> given a <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>.
+            </summary>
+            <param name="connection">The given <see cref="T:WampSharp.Core.Listener.IWampConnection`1"/>.</param>
+            <returns>The built <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampRpcSerializer">
+            <summary>
+            Serializes proxy method calls to <see cref="T:WampSharp.Rpc.Client.WampRpcCall"/>s.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampRpcSerializer.Serialize(System.Reflection.MethodInfo,System.Object[])">
+            <summary>
+            Serializes a proxy method call to a <see cref="T:WampSharp.Rpc.Client.WampRpcCall"/>.
+            </summary>
+            <param name="method">The called method.</param>
+            <param name="arguments">The call arguments.</param>
+            <returns>The serialized <see cref="T:WampSharp.Rpc.Client.WampRpcCall"/>.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.IWampServerProxyFactory`1">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Contracts.V1.IWampServer"/> proxy that handles
+            <see cref="T:WampSharp.Core.Contracts.V1.IWampRpcClient`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.IWampServerProxyFactory`1.Create(WampSharp.Core.Contracts.V1.IWampRpcClient{`0},WampSharp.Core.Listener.IWampConnection{`0})">
+            <summary>
+            Creates a <see cref="T:WampSharp.Core.Contracts.V1.IWampServer"/> that its callbacks will be
+            redirecte to a given <see cref="T:WampSharp.Core.Contracts.V1.IWampRpcClient`1"/>.
+            </summary>
+            <param name="client">The given <see cref="T:WampSharp.Core.Contracts.V1.IWampRpcClient`1"/>.</param>
+            <param name="connection">The connection to the proxy.</param>
+            <returns>The created proxy.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcCall">
+            <summary>
+            Represents a WAMP rpc call.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcCall.CallId">
+            <summary>
+            The call id of the this call.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcCall.ProcUri">
+            <summary>
+            The proc uri to call.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcCall.Arguments">
+            <summary>
+            The arguments sent with the call.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcCall.ReturnType">
+            <summary>
+            The expected return type of the call.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcClientInterceptor">
+            <summary>
+            A base class interceptor for both synchronous and asynchronous
+            rpc calls.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcClientInterceptor.#ctor(WampSharp.Rpc.Client.IWampRpcSerializer,WampSharp.Rpc.Client.IWampRpcClientHandler)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampRpcClientHandlerBuilder`1"/>.
+            </summary>
+            <param name="serializer"></param>
+            <param name="clientHandler"></param>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcClientInterceptor.Intercept(Castle.DynamicProxy.IInvocation)">
+            <summary>
+            Implementation of <see cref="M:Castle.DynamicProxy.IInterceptor.Intercept(Castle.DynamicProxy.IInvocation)"/>.
+            </summary>
+            <param name="invocation"></param>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcClientInterceptor.Serializer">
+            <summary>
+            The serializer used in order to serialize method calls.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcClientInterceptor.ClientHandler">
+            <summary>
+            The <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/> use in order
+            to handle serialized <see cref="T:WampSharp.Rpc.Client.WampRpcCall"/>s.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcClientFactory`1">
+            <summary>
+            A default implementation of <see cref="T:WampSharp.Rpc.Client.IWampRpcClientFactory`1"/>
+            using dynamic proxy.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcClientFactory`1.#ctor(WampSharp.Rpc.Client.IWampRpcSerializer,WampSharp.Rpc.Client.IWampRpcClientHandlerBuilder{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampRpcClientFactory`1"/>.
+            </summary>
+            <param name="serializer">The <see cref="T:WampSharp.Rpc.Client.IWampRpcSerializer"/> used
+            in order to serialize RPC calls.</param>
+            <param name="clientHandlerBuilder">The <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandlerBuilder`1"/>
+            used in order to build the handler that handles the <see cref="T:WampSharp.Rpc.Client.WampRpcCall"/>s.</param>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcClientHandler`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandler"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcClientHandler`1.#ctor(WampSharp.Rpc.Client.IWampServerProxyFactory{`0},WampSharp.Core.Listener.IWampConnection{`0},WampSharp.Core.Serialization.IWampFormatter{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampRpcClientHandler`1"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcClientHandlerBuilder`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Client.IWampRpcClientHandlerBuilder`1"/>
+            using <see cref="T:WampSharp.Rpc.Client.WampRpcClientHandler`1"/>
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcClientHandlerBuilder`1.#ctor(WampSharp.Core.Serialization.IWampFormatter{`0},WampSharp.Rpc.Client.IWampServerProxyFactory{`0})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampRpcClientHandler`1"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcClientInterceptorSelector">
+            <summary>
+            Selects the right <see cref="T:WampSharp.Rpc.Client.WampRpcClientInterceptor"/> based
+            on whether the method is synchronous or asynchronous.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcMethodAttributeProcUriMapper">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Client.IWampProcUriMapper"/> based on
+            <see cref="T:WampSharp.Rpc.WampRpcMethodAttribute"/>s.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcRequest">
+            <summary>
+            Represents a RPC request that is currently
+            in progress.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcRequest.Task">
+            <summary>
+            A task used in order to notify when
+            result arrived.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.Client.WampRpcRequest.Request">
+            <summary>
+            The original request.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampRpcSerializer">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Client.IWampRpcSerializer"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampRpcSerializer.#ctor(WampSharp.Rpc.Client.IWampProcUriMapper)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampRpcSerializer"/>.
+            </summary>
+            <param name="procUriMapper">A given <see cref="T:WampSharp.Rpc.Client.IWampProcUriMapper"/>
+            used in order to map called methods to their corresponding
+            uris.</param>
+        </member>
+        <member name="T:WampSharp.Rpc.Client.WampServerProxyFactory`1">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Client.IWampServerProxyFactory`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Client.WampServerProxyFactory`1.#ctor(WampSharp.Core.Client.IWampServerProxyBuilder{`0,WampSharp.Core.Contracts.V1.IWampRpcClient{`0},WampSharp.Core.Contracts.V1.IWampServer})">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Client.WampServerProxyFactory`1"/>.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.IWampRpcMetadataCatalog">
+            <summary>
+            Represents a catalog of hosted rpc services.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMetadataCatalog.Register(WampSharp.Rpc.Server.IWampRpcMetadata)">
+            <summary>
+            Registers a new rpc service to the catalog
+            given its metadata.
+            </summary>
+            <param name="metadata">The given service's metadata.</param>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMetadataCatalog.Unregister(WampSharp.Rpc.Server.IWampRpcMethod)">
+            <summary>
+            Unregisters a rpc method from the catalog
+            </summary>
+            <param name="method">The given method to unregister.</param>
+            <returns>A value indicating whether the method was removed 
+            successfully.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMetadataCatalog.ResolveMethodByProcUri(System.String)">
+            <summary>
+            Maps a given proc uri to its corresponding metadata.
+            </summary>
+            <param name="procUri">The given proc uri.</param>
+            <returns>The corresponding metadata.</returns>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.IWampRpcMetadataCatalog.GetAllRpcMethods">
+            <summary>
+            Gets all registered RPC methods.
+            </summary>
+            <returns>All registered RPC methods.</returns>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.ProcUriAlreadyMappedException">
+            <summary>
+            Indicates that a given proc uri is already mapped in
+            <see cref="T:WampSharp.Rpc.Server.IWampRpcMetadataCatalog"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.ProcUriAlreadyMappedException.#ctor(System.String)">
+            <summary>
+            Creates a new instance of <see cref="T:WampSharp.Rpc.Server.ProcUriAlreadyMappedException"/>.
+            </summary>
+            <param name="procUri">The given proc uri.</param>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.WampRpcMetadataCatalog">
+            <summary>
+            An implementation of <see cref="T:WampSharp.Rpc.Server.IWampRpcMetadataCatalog"/>.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.WampRpcMetadataCatalog.#ctor">
+            <summary>
+            A default constructor.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.Server.WampRpcServer`1">
+            <summary>
+            An server-side implementation of <see cref="T:WampSharp.Core.Contracts.V1.IWampRpcServer`1"/>.
+            </summary>
+            <typeparam name="TMessage"></typeparam>
+        </member>
+        <member name="M:WampSharp.Rpc.Server.WampRpcServer`1.#ctor(WampSharp.Core.Serialization.IWampFormatter{`0},WampSharp.Rpc.Server.IWampRpcMetadataCatalog)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Rpc.Server.WampRpcServer`1"/>.
+            </summary>
+            <param name="formatter">The <see cref="T:WampSharp.Core.Serialization.IWampFormatter`1"/>
+            used in order to deserialize method arguments.</param>
+            <param name="rpcMetadataCatalog">The <see cref="T:WampSharp.Rpc.Server.IWampRpcMetadataCatalog"/>
+            used in order to map calls to their corresponding methods.</param>
+        </member>
+        <member name="T:WampSharp.Rpc.WampRpcCallException">
+            <summary>
+            An exception having details that will be sent
+            through a CALLERROR WAMP message.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.WampRpcCallException.#ctor(System.String,System.String,System.Object)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Rpc.WampRpcCallException"/>.
+            </summary>
+            <param name="errorUri"><see cref="P:WampSharp.Rpc.WampRpcCallException.ErrorUri"/></param>
+            <param name="errorDesc">The error description, <see cref="P:System.Exception.Message"/>.</param>
+            <param name="errorDetails"><see cref="P:WampSharp.Rpc.WampRpcCallException.ErrorDetails"/></param>
+        </member>
+        <member name="M:WampSharp.Rpc.WampRpcCallException.#ctor(System.String,System.String,System.String,System.String,System.Object)">
+            <summary>
+            Initializes a new instance of <see cref="T:WampSharp.Rpc.WampRpcCallException"/>.
+            </summary>
+            <param name="procUri"><see cref="P:WampSharp.Rpc.WampRpcCallException.ProcUri"/></param>
+            <param name="callId"><see cref="P:WampSharp.Rpc.WampRpcCallException.CallId"/></param>
+            <param name="errorUri"><see cref="P:WampSharp.Rpc.WampRpcCallException.ErrorUri"/></param>
+            <param name="errorDesc">The error description, <see cref="P:System.Exception.Message"/>.</param>
+            <param name="errorDetails"><see cref="P:WampSharp.Rpc.WampRpcCallException.ErrorDetails"/></param>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcCallException.ProcUri">
+            <summary>
+            The called method's proc uri.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcCallException.CallId">
+            <summary>
+            The call id of the WAMP CALL.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcCallException.ErrorUri">
+            <summary>
+            The error uri.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcCallException.ErrorDetails">
+            <summary>
+            The error details.
+            </summary>
+        </member>
+        <member name="T:WampSharp.Rpc.WampRpcMethodAttribute">
+            <summary>
+            Indicates a method is a WAMP rpc service method.
+            </summary>
+        </member>
+        <member name="M:WampSharp.Rpc.WampRpcMethodAttribute.#ctor(System.String)">
+            <summary>
+            Intializes a new instance of <see cref="T:WampSharp.Rpc.WampRpcMethodAttribute"/>.
+            </summary>
+            <param name="procUri"></param>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcMethodAttribute.ProcUri">
+            <summary>
+            The proc uri of this method.
+            </summary>
+        </member>
+        <member name="P:WampSharp.Rpc.WampRpcMethodAttribute.IsRelative">
+            <summary>
+            Gets/sets a value indicating whether the proc uri is
+            relative to a base uri or not.
+            </summary>
+        </member>
+    </members>
+</doc>
