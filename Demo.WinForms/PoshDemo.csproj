@@ -7,7 +7,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>SVGTerminalDemo</RootNamespace>
     <AssemblyName>PoshDemo</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -36,7 +36,10 @@
       <HintPath>..\Dependencies\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Svg">
+      <HintPath>packages\Svg.1.7.0\lib\Svg.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -78,10 +81,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SVG\Source\Svg.csproj">
-      <Project>{886A98C5-37C0-4E8B-885E-30C1D2F98B47}</Project>
-      <Name>Svg</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Source\Posh.csproj">
       <Project>{15E03D5B-2054-4BA6-9561-FA259EC195F0}</Project>
       <Name>Posh</Name>

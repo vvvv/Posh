@@ -1,16 +1,12 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-# SharpDevelop 4.4
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+# SharpDevelop 5.0
+VisualStudioVersion = 12.0.20827.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoshDemo", "PoshDemo.csproj", "{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svg", "..\..\SVG\Source\Svg.csproj", "{886A98C5-37C0-4E8B-885E-30C1D2F98B47}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWamp", "..\..\NWamp\NWamp\NWamp.csproj", "{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NWamp.SuperWebSocket", "..\..\NWamp\NWamp.SuperWebSocket\NWamp.SuperWebSocket.csproj", "{7C335119-2F26-484A-856F-0DECC544C0DE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posh", "..\Posh.csproj", "{15E03D5B-2054-4BA6-9561-FA259EC195F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Posh", "..\Source\Posh.csproj", "{15E03D5B-2054-4BA6-9561-FA259EC195F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,25 +14,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{886A98C5-37C0-4E8B-885E-30C1D2F98B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{886A98C5-37C0-4E8B-885E-30C1D2F98B47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{886A98C5-37C0-4E8B-885E-30C1D2F98B47}.Release|Any CPU.Build.0 = Release|Any CPU
-		{886A98C5-37C0-4E8B-885E-30C1D2F98B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34E319A3-DC94-41A4-B09E-BCA2EFA989D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C335119-2F26-484A-856F-0DECC544C0DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C335119-2F26-484A-856F-0DECC544C0DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C335119-2F26-484A-856F-0DECC544C0DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7C335119-2F26-484A-856F-0DECC544C0DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC83BBEE-F33C-48E0-A71E-EE5A5911D848}.Release|Any CPU.Build.0 = Release|Any CPU
 		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15E03D5B-2054-4BA6-9561-FA259EC195F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
