@@ -487,7 +487,6 @@ function onRemove(topicUri, event)
 	startTimer();
 	var data = JSON.parse(event);
 	
-	//$('#svg_Overlays_hack').attr('visibility', 'true');
 	for (var i = 0; i < data.RemoveIDList.length; i++) 
 	{
 		var elementToRemove = document.getElementById(data.RemoveIDList[i]);
@@ -496,7 +495,6 @@ function onRemove(topicUri, event)
 		//log(data.RemoveIDList[i]);
 		$(elementToRemove).remove();
 	}
-	//$('#svg_Overlays_hack').attr('visibility', 'hidden');
 	
 	setLastChangeName(data.SessionName + ": remove");
 	stopTimer();
