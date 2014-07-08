@@ -1,5 +1,5 @@
 #Posh
-misusing the browser as your windowing/interaction/drawing layer for your c#/.net desktop applications by streaming [SVG] (http://en.wikipedia.org/wiki/Scalable_Vector_Graphics) graphics via the [WAMP] (http://wamp.ws/) v1 protocol to browsers. 
+misusing the browser as your windowing/interaction/drawing layer for your c#/.net desktop applications by streaming [SVG] (http://en.wikipedia.org/wiki/Scalable_Vector_Graphics) graphics via the [WAMP] (http://wamp.ws/) v1 protocol to browsers. For some more details read the [announcement] (http://vvvv.org/blog/posh-an-svg-based-flat-ui-framework-targeting-browsers).
 
 ##Applications using Posh
 * [Timeliner] (https://github.com/vvvv/Timeliner)
