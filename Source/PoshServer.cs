@@ -82,8 +82,6 @@ namespace Posh
 			FWampHost.SessionClosed += SessionClosed;
 			//FWampHost.Listener.CallInvoked += PublishAll;
 			
-			
-			
 			//create event caller for svg            
 			SvgEventCaller = new PoshSvgEventCaller(FWampHost);
 			SvgEventCaller.CallInvoked += SvgEventCaller_CallInvoked;
@@ -150,9 +148,12 @@ namespace Posh
 				if(disposing)
 				{
 					// Dispose managed resources.
-//					WampListener.SessionCreated -= SessionCreated;
-//					WampListener.SessionClosed -= SessionClosed;
+					SvgEventCaller.CallInvoked -= SvgEventCaller_CallInvoked;
+					
+					FWampHost.SessionCreated -= SessionCreated;
+					FWampHost.SessionClosed -= SessionClosed;
 //					WampListener.CallInvoked -= PublishAll;
+					
 					FWampHost.Dispose();
 				}
 				// Release unmanaged resources. If disposing is false,
