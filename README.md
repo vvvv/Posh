@@ -3,6 +3,11 @@ misusing the browser as your windowing/interaction/drawing layer for your c#/.ne
 
 ##Applications using Posh
 * [Timeliner] (https://github.com/vvvv/Timeliner)
+ 
+##Running the Demo
+* Open Demo.WinForms\PoshDemo.sln
+* Rightclick the solution icon -> Restore Packages
+* Now it should build and run
 
 ##Code Overview
 comes with 
