@@ -36,10 +36,10 @@
       <HintPath>..\Dependencies\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Svg">
-      <HintPath>packages\Svg.1.7.0\lib\Svg.dll</HintPath>
+      <HintPath>..\packages\Svg.1.7.0\lib\Svg.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
