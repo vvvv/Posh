@@ -1,27 +1,34 @@
-#Posh
+# Posh
+
 misusing the browser as your windowing/interaction/drawing layer for your c#/.net desktop applications by streaming [SVG] (http://en.wikipedia.org/wiki/Scalable_Vector_Graphics) graphics via the [WAMP] (http://wamp.ws/) v1 protocol to browsers. For some more details read the [announcement] (http://vvvv.org/blog/posh-an-svg-based-flat-ui-framework-targeting-browsers).
 
-##Applications using Posh
-* [Timeliner] (https://github.com/vvvv/Timeliner)
+## Applications using Posh
+
+* [Timeliner](https://github.com/vvvv/Timeliner)
  
-##Running the Demo
+## Running the Demo
+
 * Open Demo.WinForms\PoshDemo.sln
 * Rightclick the solution icon -> Restore Packages
 * Now it should build and run
 
-##Code Overview
+## Code Overview
+
 comes with 
+
 * [autobahn](http://autobahn.ws/js/) 
 * [jQuery](http://jquery.com)
-* [WampSharp] (https://github.com/vvvv/WampSharp)
-* [SVG] (https://github.com/vvvv/SVG)
+* [WampSharp](https://github.com/vvvv/WampSharp)
+* [SVG](https://github.com/vvvv/SVG)
 
 ### WebServer.cs
+
 * is an HTTP server
 * serves the \web\posh.html as answer to any URL request only with a unique WebSocket port configured for each URL
 * on /root it serves a listing of all saved *.xml documents
 
 ### PoshServer.cs
+
 * has a WebSocket listening on the specified port
 * translates RPCs that come in via WebSocket to local calls
 * registers a WAMPListener on the WebSocket
@@ -32,11 +39,13 @@ comes with
 * can publish Posh after every RPC (AutoPublish) or manually on Publish()
 
 ### RemoteContext.cs
+
 * acts as kind of a buffer between changes to the local and the remote SVG DOM
 * keeps track of local DOM changes
 * provides them in Posh form (json/xml) on demand
 
 ### SvgIdManager.cs
+
 * is a custom ID manager for SVG
 * gets __SvgEventCaller__ from WampServer
 * OnAdd(element)
@@ -47,9 +56,11 @@ comes with
  * calls __element.UnregisterEvents()__
  
 ### DynamicRPC.cs
+
 * represents a dynamic RPC for being able to be registered at the WampHost
 
-###/web
+### /web
+
 the web/js part of posh that 
 * receives Posh snippets and 
  * manipulates the SVG DOM accordingly
